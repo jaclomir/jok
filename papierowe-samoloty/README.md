@@ -118,7 +118,7 @@ Wymagania: Python 3 (`pip install shapely numpy scipy pillow cairocffi pymupdf`)
 ```sh
 cd papierowe-samoloty/src
 python3 build.py            # wszystkie modele
-python3 build.py mops       # jeden model
+python3 build.py bryza      # jeden model
 python3 strona.py           # strona/index.html
 ```
 
