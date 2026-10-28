@@ -11,7 +11,7 @@ import os
 HERE = os.path.dirname(__file__)
 ROOT = os.path.join(HERE, "..")
 WEB = os.path.join(HERE, "web")
-KOLEJNOSC = ["grot", "iskra", "albatros", "jerzyk", "kaczka", "bryza"]
+KOLEJNOSC = ["grot", "iskra", "albatros", "jerzyk", "sokol", "bryza"]
 
 
 def czytaj(*p):
@@ -44,6 +44,10 @@ def strona():
         ("Da się wydrukować same linie, bez malowania?",
          ["Tak. Zaznacz „Bez malowania” przy kolorach. Drukują się tylko linie zgięć z numerami kroków, więc tuszu prawie nie ubywa. "
           "Biały samolot możesz pomalować kredkami albo flamastrami – linie podpowiedzą, gdzie po złożeniu będzie skrzydło, a gdzie kadłub."]),
+        ("Jak złożyć samolot bez drukarki?",
+         ["Weź zwykłą kartkę A4 i pobierz szablon z sekcji „Bez drukarki”. Każdy krok ma schemat z wymiarami: niebieska liczba to odległość "
+          "w centymetrach od najbliższego rogu, w której zaczyna się zgięcie. Większość zgięć to „róg do środka” albo „krawędź do krawędzi”, "
+          "więc mierzysz tylko kilka miejsc."]),
         ("Gdzie jest napis domowydrukarz.pl?",
          ["Na arkuszu, w miejscu, które po złożeniu chowa się w środku modelu. Na gotowym samolocie go nie widać."]),
         ("Czy coś zostaje wysłane?",
@@ -119,7 +123,7 @@ def strona():
   <ol class="kroki">
    <li><span class="nr mono">1</span><strong>Wybierz model</strong><span class="op">Od klasycznej strzały po szybowiec i samolot patrolowy. Bez nożyczek i kleju. Podgląd pokazuje gotowy samolot.</span></li>
    <li><span class="nr mono">2</span><strong>Wybierz kolor</strong><span class="op">Wzór zostaje, kolor zmieniasz – albo drukujesz same linie. Pola są z drobnych kropek, więc drukarka atramentowa nie pofaluje kartki.</span></li>
-   <li><span class="nr mono">3</span><strong>Drukuj i składaj</strong><span class="op">PDF w skali 100%, jedna strona, jednostronnie. Kroki składania są niżej.</span></li>
+   <li><span class="nr mono">3</span><strong>Drukuj i składaj</strong><span class="op">PDF w skali 100%, jedna strona, jednostronnie. Bez drukarki? Jest szablon z wymiarami na zwykłą kartkę.</span></li>
   </ol>
  </div>
 </header>
@@ -179,10 +183,27 @@ def strona():
  </div>
 </section>
 
+<section aria-labelledby="h-bez">
+ <div class="wrap">
+  <div class="nag"><span class="nr mono">3</span><h2 id="h-bez">Bez drukarki</h2></div>
+  <div class="reader">
+   <p class="skrot"><b>Siedzisz na lekcji albo w pracy bez drukarki? To nic.</b> Bez drukarki też złożysz. Pobierz szablon z liniami gięcia i startuj :)</p>
+   <p>Szablon to kroki składania z wymiarami: niebieska liczba mówi, ile centymetrów od rogu kartki zaczyna się zgięcie. Wystarczy zwykła kartka A4, linijka albo dobre oko. Otworzysz go na telefonie obok kartki.</p>
+  </div>
+  <div class="rzad" style="opacity:1">
+   <button class="btn" id="szablon" type="button">Pobierz szablon</button>
+   <button class="btn2" id="pokazBez" type="button">Pokaż kroki z wymiarami</button>
+  </div>
+ </div>
+</section>
+
 <section aria-labelledby="h-kroki">
  <div class="wrap">
-  <div class="nag"><span class="nr mono">3</span><h2 id="h-kroki">Jak złożyć</h2></div>
-  <p class="legenda">Linie <b>przerywane</b> to zgięcia w dolinę (od strony nadruku zgięcie robi rowek), <b>kreska z kropką</b> to grzbiet. Numery przy liniach to numery kroków. Na schematach czerwona linia pokazuje zgięcie z danego kroku.</p>
+  <div class="nag"><span class="nr mono">4</span><h2 id="h-kroki">Jak złożyć</h2></div>
+  <div class="przel" id="trybKrokow" role="group" aria-label="Wersja kroków" style="margin-bottom:14px">
+   <button type="button" data-t="druk" aria-pressed="true">Z wydruku</button><button type="button" data-t="bez" aria-pressed="false">Bez drukarki, z wymiarami</button>
+  </div>
+  <p class="legenda" id="legendaKrokow">Linie <b>przerywane</b> to zgięcia w dolinę (od strony nadruku zgięcie robi rowek), <b>kreska z kropką</b> to grzbiet. Numery przy liniach to numery kroków. Na schematach czerwona linia pokazuje zgięcie z danego kroku.</p>
   <ol class="skladanie" id="kroki"></ol>
  </div>
 </section>

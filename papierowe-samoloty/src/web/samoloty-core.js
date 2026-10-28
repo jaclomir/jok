@@ -184,8 +184,32 @@
       ctx.beginPath(); seg.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.stroke();
       ctx.setLineDash([]);
     }
+    if (opcje.miary) for (const m of scena.miary || []) wymiar(ctx, m, scena.w, scena.h);
     if (scena.arrow) strzalka(ctx, scena.arrow);
     if (scena.flip) obrot(ctx, scena.w, scena.h);
+  }
+  // wymiar: odcinek od rogu kartki do miejsca, gdzie zaczyna się zgięcie, z podpisem w cm
+  function wymiar(ctx, m, w, h) {
+    const [ax, ay, bx, by, t] = m;
+    const dx = bx - ax, dy = by - ay, L = Math.hypot(dx, dy) || 1;
+    let nx = -dy / L, ny = dx / L;
+    const mx = (ax + bx) / 2, my = (ay + by) / 2;
+    if ((mx - w / 2) * nx + (my - h / 2) * ny < 0) { nx = -nx; ny = -ny; } // na zewnątrz kartki
+    const o = 7;
+    ctx.save();
+    ctx.strokeStyle = '#2a6fd6'; ctx.fillStyle = '#2a6fd6'; ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(ax + nx * o, ay + ny * o); ctx.lineTo(bx + nx * o, by + ny * o);
+    for (const [x, y] of [[ax, ay], [bx, by]]) { ctx.moveTo(x + nx * 2, y + ny * 2); ctx.lineTo(x + nx * (o + 4), y + ny * (o + 4)); }
+    ctx.stroke();
+    ctx.font = '700 12px Figtree, system-ui, sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const tw = ctx.measureText(t).width / 2 + 3;
+    const tx = Math.max(tw, Math.min(w - tw, mx + nx * (o + 11))), ty = Math.max(8, Math.min(h - 8, my + ny * (o + 11)));
+    ctx.lineWidth = 4; ctx.strokeStyle = '#ffffff'; ctx.lineJoin = 'round';
+    ctx.strokeText(t, tx, ty);
+    ctx.fillText(t, tx, ty);
+    ctx.restore();
   }
   function strzalka(ctx, a) {
     const [x0, y0, x1, y1] = a;

@@ -12,7 +12,7 @@
   ];
   const TRUDNOSC = ['', 'łatwy', 'średni', 'trudniejszy'];
 
-  const st = { model: DANE[0].slug, kolor: null, widok: 'gora', instr: false, linie: false };
+  const st = { model: DANE[0].slug, kolor: null, widok: 'gora', instr: false, linie: false, bezDrukarki: false };
   const cache = new Map();
   let pdfUrl = null, pdfTimer = null, pdfNr = 0;
 
@@ -35,12 +35,14 @@
     const k = q.get('kolor');
     if (k && /^[0-9a-f]{6}$/i.test(k)) st.kolor = '#' + k.toLowerCase();
     st.linie = q.get('malowanie') === '0';
+    st.bezDrukarki = q.get('drukarka') === '0';
   }
   function zapiszAdres() {
     const q = new URLSearchParams();
     q.set('model', st.model);
     if (st.kolor) q.set('kolor', st.kolor.slice(1));
     if (st.linie) q.set('malowanie', '0');
+    if (st.bezDrukarki) q.set('drukarka', '0');
     try { history.replaceState(null, '', '?' + q.toString()); } catch (e) { /* plik lokalny */ }
   }
 
@@ -149,25 +151,62 @@
   }
 
   /* ---------- kroki składania ---------- */
+  // tekst kroku w wersji bez drukarki: czysta kartka zamiast wydruku, bez odwołań do numerów linii
+  function bezWydruku(t, m) {
+    const orient = m.W > m.H ? 'poziomo' : 'pionowo';
+    return t
+      .replace(/Połóż wydruk[^.]*\./, 'Połóż czystą kartkę A4 ' + (m.W > m.H ? 'poziomo, dłuższym bokiem do siebie.' : 'pionowo, krótszym bokiem do siebie.'))
+      .replace(/[^.]*pojawi się linia[^.]*\.\s*/g, '')
+      .replace(/wzdłuż (krótkiej |długiej, płaskiej |poziomej |pionowej |środkowej |kropkowanej )?linii \d+( (i|–) \d+)?/g, 'wzdłuż czerwonej linii ze schematu')
+      .replace(/ \((linia|linie) [\d–, ]+\)/g, '')
+      .replace(/ do linii STOP \((\d+) zgięć\)/, ' – razem $1 zgięć')
+      .trim();
+  }
+  function kartyKrokow(m, bez) {
+    const out = [];
+    const a = arkusz(m, 3, true);
+    const pusta = bez ? (() => { const c = document.createElement('canvas'); c.width = a.width; c.height = a.height;
+      const x = c.getContext('2d'); x.fillStyle = '#ffffff'; x.fillRect(0, 0, c.width, c.height); return c; })() : a;
+    const orient = m.W > m.H ? 'poziomo' : 'pionowo';
+    const t0 = bez
+      ? 'Zwykła kartka A4, ' + orient + '. Niebieskie liczby to centymetry od najbliższego rogu, wzdłuż krawędzi.'
+      : 'Tak wygląda wydruk od strony nadruku. Czerwony trójkąt pokazuje górną krawędź. ' +
+        'Do składania połóż go nadrukiem do stołu (odwróć jak stronę w książce).';
+    out.push(kartaKroku('0', t0, c => {
+      const s = Math.min(280 / a.width, 280 / a.height);
+      c.width = Math.round(a.width * s * dpr()); c.height = Math.round(a.height * s * dpr());
+      const x = c.getContext('2d');
+      x.drawImage(pusta, 0, 0, c.width, c.height);
+      x.strokeStyle = '#b9ae9d'; x.lineWidth = dpr(); x.strokeRect(0.5, 0.5, c.width - 1, c.height - 1);
+      if (bez) {
+        x.fillStyle = '#2a6fd6'; x.font = (700 * 1) + ' ' + Math.round(14 * dpr()) + 'px Figtree, system-ui, sans-serif';
+        x.textAlign = 'center'; x.textBaseline = 'middle';
+        x.fillText((m.W > m.H ? '29,7' : '21') + ' cm', c.width / 2, 16 * dpr());
+        x.save(); x.translate(16 * dpr(), c.height / 2); x.rotate(-Math.PI / 2);
+        x.fillText((m.W > m.H ? '21' : '29,7') + ' cm', 0, 0); x.restore();
+      } else {
+        x.fillStyle = '#d7263d';
+        x.beginPath(); x.moveTo(c.width / 2, 2); x.lineTo(c.width / 2 - 10 * dpr(), 16 * dpr()); x.lineTo(c.width / 2 + 10 * dpr(), 16 * dpr()); x.fill();
+      }
+    }));
+    for (const k of m.kroki) {
+      out.push(kartaKroku(String(k.n), bez ? bezWydruku(k.t, m) : k.t,
+        c => S.rysujScene(c, k.s, m, pusta, 3, { dpr: dpr(), tlo: '#ffffff', miary: bez })));
+    }
+    return out;
+  }
   function kroki() {
     const m = model();
     const box = $('kroki');
     box.innerHTML = '';
-    const a = arkusz(m, 3, true);
-    // krok 0: wydruk od strony nadruku
-    box.appendChild(kartaKroku('0', 'Tak wygląda wydruk od strony nadruku. Czerwony trójkąt pokazuje górną krawędź. ' +
-      'Do składania połóż go nadrukiem do stołu (odwróć jak stronę w książce).', c => {
-      const s = Math.min(280 / a.width, 280 / a.height);
-      c.width = Math.round(a.width * s * dpr()); c.height = Math.round(a.height * s * dpr());
-      const x = c.getContext('2d');
-      x.drawImage(a, 0, 0, c.width, c.height);
-      x.fillStyle = '#d7263d';
-      x.beginPath(); x.moveTo(c.width / 2, 2); x.lineTo(c.width / 2 - 10 * dpr(), 16 * dpr()); x.lineTo(c.width / 2 + 10 * dpr(), 16 * dpr()); x.fill();
-      x.strokeStyle = '#b9ae9d'; x.lineWidth = dpr(); x.strokeRect(0.5, 0.5, c.width - 1, c.height - 1);
-    }));
-    for (const k of m.kroki) {
-      box.appendChild(kartaKroku(String(k.n), k.t, c => S.rysujScene(c, k.s, m, a, 3, { dpr: dpr(), tlo: '#ffffff' })));
-    }
+    for (const li of kartyKrokow(m, st.bezDrukarki)) box.appendChild(li);
+    const lg = $('legendaKrokow');
+    if (!lg.dataset.druk) lg.dataset.druk = lg.innerHTML;
+    lg.innerHTML = st.bezDrukarki
+      ? 'Czerwona linia to zgięcie z danego kroku. <b>Niebieska liczba</b> to odległość w centymetrach od najbliższego rogu, ' +
+        'mierzona wzdłuż krawędzi – tam zaczyna się zgięcie. „Środek” znaczy połowę krawędzi.'
+      : lg.dataset.druk;
+    for (const b of document.querySelectorAll('#trybKrokow button')) b.setAttribute('aria-pressed', String((b.dataset.t === 'bez') === st.bezDrukarki));
   }
   function kartaKroku(nr, tekst, rysuj) {
     const li = document.createElement('li');
@@ -213,8 +252,26 @@
   }
   // instrukcja jako druga strona: obrazek złożony z kart kroków
   async function dolaczInstrukcje(bytes, m) {
+    const doc = await window.PDFLib.PDFDocument.load(bytes);
+    await stronaKrokow(doc, m, kartyKrokow(m, false), m.nazwa + ' – jak złożyć', 'domowydrukarz.pl · papierowe samoloty · ' + m.lot);
+    return doc.save();
+  }
+  async function szablonBezDrukarki() {
+    const m = model();
     const L = window.PDFLib;
-    const doc = await L.PDFDocument.load(bytes);
+    const doc = await L.PDFDocument.create();
+    doc.setTitle(m.nazwa + ' – składanie bez drukarki (domowydrukarz.pl)');
+    doc.setAuthor('domowydrukarz.pl');
+    await stronaKrokow(doc, m, kartyKrokow(m, true), m.nazwa + ' – bez drukarki',
+      'Zwykła kartka A4 i ta instrukcja. Niebieskie liczby: odległość w cm od najbliższego rogu kartki. domowydrukarz.pl');
+    const bytes = await doc.save();
+    const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+    const a = document.createElement('a');
+    a.href = url; a.download = 'samolot-' + m.slug + '-bez-drukarki.pdf';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }
+  async function stronaKrokow(doc, m, karty, tytul, podtytul) {
     const W = 595.28, H = 841.89, sk = 2; // 144 dpi
     const c = document.createElement('canvas');
     c.width = W * sk; c.height = H * sk;
@@ -223,11 +280,10 @@
     x.fillStyle = '#fff'; x.fillRect(0, 0, W, H);
     x.fillStyle = '#26221d';
     x.font = '800 26px Figtree, system-ui, sans-serif';
-    x.fillText(m.nazwa + ' – jak złożyć', 32, 52);
+    x.fillText(tytul, 32, 52);
     x.font = '500 11px Figtree, system-ui, sans-serif';
     x.fillStyle = '#6b645a';
-    x.fillText('domowydrukarz.pl · papierowe samoloty · ' + m.lot, 32, 72, W - 64);
-    const karty = [...$('kroki').children];
+    x.fillText(podtytul, 32, 72, W - 64);
     const kol = 4, cw = (W - 64) / kol, ch = (H - 100) / Math.ceil(karty.length / kol);
     karty.forEach((li, i) => {
       const cx = 32 + (i % kol) * cw, cy = 92 + Math.floor(i / kol) * ch;
@@ -245,7 +301,6 @@
     const jpg = await doc.embedJpg(c.toDataURL('image/jpeg', 0.85));
     const p = doc.addPage([W, H]);
     p.drawImage(jpg, { x: 0, y: 0, width: W, height: H });
-    return doc.save();
   }
   function zawijaj(x, t, px, py, w, lh) {
     let linia = '', y = py;
@@ -274,6 +329,9 @@
     for (const b of document.querySelectorAll('#widoki button')) b.addEventListener('click', () => { st.widok = b.dataset.w; podglad(); });
     $('instr').addEventListener('change', e => { st.instr = e.target.checked; planujPdf(); });
     $('bezMal').addEventListener('change', e => { st.linie = e.target.checked; zmiana(); });
+    $('szablon').addEventListener('click', () => szablonBezDrukarki().catch(e => console.error(e)));
+    for (const b of document.querySelectorAll('#trybKrokow button')) b.addEventListener('click', () => { st.bezDrukarki = b.dataset.t === 'bez'; zapiszAdres(); kroki(); });
+    $('pokazBez').addEventListener('click', () => { st.bezDrukarki = true; zapiszAdres(); kroki(); $('h-kroki').scrollIntoView({ behavior: 'smooth' }); });
     zmiana();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();

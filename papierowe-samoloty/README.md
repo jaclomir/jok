@@ -12,13 +12,13 @@ trafił dokładnie na skrzydła, kadłub i winglety.
 | 2 | **Iskra** | ●○○ | poziomo | biało-kolorowy samolot szkolno-akrobacyjny | szeroka delta, kilka zgięć |
 | 3 | **Albatros** | ●●○ | poziomo | biały szybowiec z kolorowymi paskami | wolny, długi lot w domu |
 | 4 | **Jerzyk** | ●●○ | poziomo | liniowiec fikcyjnych linii JERZYK | ciężki nos, na dwór |
-| 5 | **Kaczka** | ●●● | pionowo | myśliwiec w układzie kaczki, dwubarwny kamuflaż | przednie skrzydełka, stabilny |
+| 5 | **Sokół** | ●●● | pionowo | myśliwiec z przednimi skrzydełkami, dwubarwny kamuflaż | przednie skrzydełka, stabilny |
 | 6 | **Bryza** | ●●● | pionowo | dwusilnikowy samolot patrolowy | zablokowany tępy nos, do pokoju |
 
 Wszystkie malowania są lotnicze. Żaden model nie wymaga nożyczek ani kleju.
 
 Składanie to tradycyjne, przekazywane od pokoleń bazy (strzałka, „bomba wodna”,
-nos zwijany, delta, kaczka z przednimi lotkami). Geometria jest narysowana od nowa pod A4.
+nos zwijany, delta, układ z przednimi skrzydełkami). Geometria jest narysowana od nowa pod A4.
 Nie kopiujemy szablonów z książek. Nazwy modeli są nasze.
 
 ## Strona narzędzia
@@ -32,6 +32,8 @@ Wszystko jest w jednym pliku: pdf-lib, dane modeli i skrypt, więc działa bez i
 - **bez malowania**: same linie zgięć i numery kroków (`?malowanie=0`), do kolorowania kredkami,
 - PDF składany w przeglądarce (pdf-lib), opcjonalnie z instrukcją na drugiej stronie,
 - kroki składania rysowane na żywo w wybranym kolorze,
+- **bez drukarki**: kroki składania z wymiarami w cm od rogów kartki, do złożenia zwykłej kartki A4;
+  szablon do pobrania jako PDF (na telefon), na stronie przełącznik „Bez drukarki, z wymiarami” (`?drukarka=0`),
 - model i kolor są w adresie strony (`?model=grot&kolor=e2508c`).
 
 ![Kolory](wyniki/kolory.png)
@@ -138,7 +140,7 @@ Najbardziej niepewne są:
 - **Bryza**: krok z klapkami po „bombie wodnej”. W symulacji klapki wchodzą pod nos. Na papierze
   może trzeba przesunąć linię o kilka mm.
 - **Iskra**: zagięcie czubka nosa (linia 5) jest krótkie – sprawdzić, czy wystarcza do wyważenia.
-- **Kaczka**: kąt odgięcia przednich skrzydełek (krok 4–5).
+- **Sokół**: kąt odgięcia przednich skrzydełek (krok 4–5).
 - **Jerzyk**: trzykrotnie zwijany nos jest gruby. Jeśli linie 4–5 nie trafiają, wystarczy
   zwinąć dwa razy.
 

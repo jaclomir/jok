@@ -36,10 +36,10 @@
     "tusz_max_30mm_proc": 35
   },
   {
-    "slug": "kaczka",
-    "nazwa": "Kaczka",
+    "slug": "sokol",
+    "nazwa": "Sokół",
     "opis": "Odrzutowiec z przednimi skrzydełkami – stabilny i długo leci",
-    "styl": "realistyczny: myśliwiec w układzie kaczki, dwubarwny kamuflaż",
+    "styl": "realistyczny: myśliwiec z przednimi skrzydełkami, dwubarwny kamuflaż",
     "trudnosc": 3,
     "orientacja": "pionowa",
     "widoczny_nadruk_proc": 70,

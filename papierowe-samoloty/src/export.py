@@ -199,7 +199,7 @@ def scene_3d(M, az, el, size, margin=24):
     return {"w": size[0], "h": size[1], "items": out}
 
 
-def scene_flat(M, facets, size, line=None, extra=(), arrow=None, cut=None, margin=16):
+def scene_flat(M, facets, size, line=None, extra=(), arrow=None, cut=None, margin=30):
     allg = unary_union([f.flat for f in facets])
     F = fit(allg.bounds, size, margin)
     items = [{"p": _poly(apply(F, f.flat)), "m": _aff(F @ f.M), "pr": bool(f.p_up)}
@@ -214,6 +214,8 @@ def scene_flat(M, facets, size, line=None, extra=(), arrow=None, cut=None, margi
             pts = [(F @ np.array([x, y, 1]))[:2] for x, y in seg.coords]
             lines.append([R1(pts[0][0]), R1(pts[0][1]), R1(pts[-1][0]), R1(pts[-1][1]), col])
     sc = {"w": size[0], "h": size[1], "items": items, "lines": lines}
+    if line:
+        sc["miary"] = miary(allg, line, F)
     if arrow is not None:
         p0 = (F @ np.array([*arrow[0], 1]))[:2]
         p1 = (F @ np.array([*arrow[1], 1]))[:2]
@@ -226,6 +228,50 @@ def scene_flat(M, facets, size, line=None, extra=(), arrow=None, cut=None, margi
                 segs.append([[R1(q[0]), R1(q[1])] for q in ((F @ np.array([x, y, 1]))[:2] for x, y in seg.coords)])
         sc["cut"] = segs
     return sc
+
+
+def cm(v):
+    """Długość w cm do podpisu: co pół centymetra, z przecinkiem."""
+    return ("%.1f" % (v / 10)).replace(".0", "").replace(".", ",") + " cm"
+
+
+def miary(allg, line, F):
+    """Wymiary do składania bez drukarki: gdzie linia zgięcia przecina obrys kartki,
+    liczone wzdłuż krawędzi od najbliższego rogu (w mm, potem zaokrąglone do 0,5 cm)."""
+    outline = max(polys(allg), key=lambda p: p.area).simplify(0.3)
+    ring = list(outline.exterior.coords)[:-1]
+    a, b = np.array(line[0], float), np.array(line[1], float)
+    L = LineString([a - (b - a) * 50, b + (b - a) * 50]).intersection(outline.buffer(0.01))
+    pts = []
+    for seg in getattr(L, "geoms", [L]):
+        if hasattr(seg, "coords") and seg.length > 1:
+            c = list(seg.coords)
+            pts += [c[0], c[-1]]
+    out = []
+    for p in pts:
+        p = np.array(p)
+        best = None
+        for i in range(len(ring)):
+            v0, v1 = np.array(ring[i]), np.array(ring[(i + 1) % len(ring)])
+            e = v1 - v0
+            n = np.linalg.norm(e)
+            if n < 1:
+                continue
+            t = np.clip(np.dot(p - v0, e) / n ** 2, 0, 1)
+            d = np.linalg.norm(v0 + t * e - p)
+            if best is None or d < best[0]:
+                best = (d, v0, v1, t * n, n)
+        if best is None or best[0] > 1.0:
+            continue
+        _, v0, v1, s, n = best
+        corner, dist = (v0, s) if s <= n - s else (v1, n - s)
+        if dist < 4:  # linia zaczyna się w rogu – nic nie trzeba mierzyć
+            continue
+        A = (F @ np.array([*corner, 1]))[:2]
+        B = (F @ np.array([*p, 1]))[:2]
+        label = "środek" if abs(s - n / 2) < 1.5 else cm(dist)
+        out.append([R1(A[0]), R1(A[1]), R1(B[0]), R1(B[1]), label])
+    return out
 
 
 def steps_data(M, size=(300, 300)):
@@ -246,6 +292,8 @@ def steps_data(M, size=(300, 300)):
                 c2 = Rf @ np.array([c.x, c.y, 1])
                 arrow = ((c.x, c.y), (c2[0], c2[1]))
             sc = scene_flat(M, st.state, size, line=st.line, arrow=arrow)
+            if i == getattr(M, "half_step", None):
+                sc.pop("miary", None)
         out.append({"n": i, "t": st.text, "s": sc})
     hs = M.plane.hinges
     for n, txt, hi in M.final_steps:

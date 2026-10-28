@@ -22,7 +22,7 @@ from fold import apply, halfplane, reflection  # noqa: E402
 from render import MM, paint_sheet, paper_ctx, render_3d, render_flat, sheet_image  # noqa: E402
 
 OUT = os.path.join(os.path.dirname(__file__), "..", "wyniki")
-MODELS = [("grot", "Grot"), ("albatros", "Albatros"), ("jerzyk", "Jerzyk"), ("kaczka", "Kaczka"),
+MODELS = [("grot", "Grot"), ("albatros", "Albatros"), ("jerzyk", "Jerzyk"), ("sokol", "Sokol"),
           ("iskra", "Iskra"), ("bryza", "Bryza")]
 ACCENT = (0.10, 0.16, 0.30)
 FONT = "DejaVu Sans"

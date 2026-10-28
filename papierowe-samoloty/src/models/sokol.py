@@ -2,11 +2,11 @@ from base import Model
 from model3d import Hinge
 
 
-class Kaczka(Model):
-    """Model z przednimi lotkami (kaczka/canard)."""
-    slug = "kaczka"
+class Sokol(Model):
+    """Model z przednimi skrzydełkami (układ canard)."""
+    slug = "sokol"
     half_flip = True
-    name = "Kaczka"
+    name = "Sokół"
 
     def build(self, s):
         W, H = self.W, self.H
@@ -27,7 +27,7 @@ class Kaczka(Model):
             b = s.paper_to_flat(*p2)
             mv = s.paper_to_flat(*corner)
             s.fold(a, b, move=mv, select=lambda f, st=st: st in f.tag.get("moves", ()),
-                   text=("Odegnij do siebie wystający róg klapki wzdłuż linii {n} – to przednie skrzydełko „kaczki”."
+                   text=("Odegnij do siebie wystający róg klapki wzdłuż linii {n} – to przednie skrzydełko."
                          if st == 2 else "To samo z drugą klapką (linia {n}).").format(n=s.nstep + 1))
 
     def hinges(self):
@@ -36,7 +36,7 @@ class Kaczka(Model):
 
     # ------------------------------------------------------------------
     tagline = "Odrzutowiec z przednimi skrzydełkami – stabilny i długo leci"
-    style = "realistyczny: myśliwiec w układzie kaczki, dwubarwny kamuflaż"
+    style = "realistyczny: myśliwiec z przednimi skrzydełkami, dwubarwny kamuflaż"
     fly = "Rzucaj średnio mocno, poziomo. Przednie skrzydełka stabilizują lot – płynie długo i prosto."
     difficulty = 3
     inks = {"main": "#3d6a94"}
