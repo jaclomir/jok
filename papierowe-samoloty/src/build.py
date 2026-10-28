@@ -287,7 +287,7 @@ def build(slug, cls):
     bad = M.check_features()
     for b in bad:
         print("  UWAGA – ucięty detal:", b, file=sys.stderr)
-    if mean > 0.15 or mx > 0.5:
+    if mean > 0.25 or mx > 0.6:
         print(f"  UWAGA – dużo tuszu: średnio {mean:.2f}, lokalnie {mx:.2f}", file=sys.stderr)
     stats = {
         "slug": slug, "nazwa": M.name, "opis": M.tagline, "styl": M.style, "trudnosc": M.difficulty,

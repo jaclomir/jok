@@ -36,68 +36,64 @@ class Sokol(Model):
 
     # ------------------------------------------------------------------
     tagline = "Odrzutowiec z przednimi skrzydełkami – stabilny i długo leci"
-    style = "realistyczny: myśliwiec z przednimi skrzydełkami, dwubarwny kamuflaż"
+    style = "realistyczny: myśliwiec w tygrysim malowaniu pokazowym"
     fly = "Rzucaj średnio mocno, poziomo. Przednie skrzydełka stabilizują lot – płynie długo i prosto."
     difficulty = 3
-    inks = {"main": "#3d6a94"}
+    inks = {"main": "#ef7d1a"}
 
-    def blob(self, ctx, pts, col):
-        """Gładka plama kamuflażu przez zadane punkty (zamknięta krzywa)."""
-        from paint import setc
-        n = len(pts)
-        ctx.new_path()
-        mid = lambda a, b: ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)  # noqa: E731
-        ctx.move_to(*mid(pts[-1], pts[0]))
-        for i in range(n):
-            p, q = pts[i], pts[(i + 1) % n]
-            m = mid(p, q)
-            ctx.curve_to(p[0], p[1], p[0], p[1], m[0], m[1])
-        ctx.close_path()
-        setc(ctx, col)
-        ctx.fill()
+    def stripes(self, ctx, s, x0, x1, ymax, seed, col):
+        """Tygrysie pręgi: zwężające się klinowate pasy od krawędzi spływu do przodu."""
+        import random
+        from paint import poly, bez_pts
+        rnd = random.Random(seed)
+        y = 6
+        while y < ymax:
+            w = rnd.uniform(3.0, 5.0)
+            ln = rnd.uniform(28, 55)
+            bend = rnd.uniform(-6, 6)
+            xa = x0 + rnd.uniform(-4, 10)
+            top = bez_pts((xa, y), (xa + ln * 0.4, y + bend), (xa + ln * 0.7, y + bend * 0.6 + w * 0.3), (xa + ln, y + w * 0.4), 16)
+            bot = bez_pts((xa + ln, y + w * 0.4), (xa + ln * 0.7, y + w * 0.9), (xa + ln * 0.4, y + w + bend), (xa, y + w), 16)
+            poly(ctx, [(px, py * s) for px, py in top + bot], col)
+            y += w + rnd.uniform(4.5, 8.0)
 
     def art(self, ctx, view, piece):
-        from paint import hx, fill, poly, line, ellipse, checker, Dots
+        from paint import hx, fill, poly, line, ellipse, Dots
         L = 192.0
-        panel = self.c(0.2)
+        black = Dots(hx("#1d1a18"), 0.62)
+        white = hx("#ffffff")
         if piece.zone == "winglet":
-            fill(ctx, self.dots(0.22))
+            fill(ctx, self.dots(0.42))
+            for k in range(3):
+                poly(ctx, [(-300, 4 + k * 6), (300, 6 + k * 6), (300, 8 + k * 6), (-300, 6.5 + k * 6)], black)
             return
         if view == "top":
-            fill(ctx, self.dots(0.09))
-            # dwubarwny kamuflaż: łagodne plamy w ciemniejszym odcieniu
+            fill(ctx, self.dots(0.34))
             for s in (1, -1):
-                self.blob(ctx, [(20, 8 * s), (70, 5 * s), (95, 22 * s), (60, 40 * s), (15, 36 * s)], self.dots(0.22))
-                self.blob(ctx, [(110, 6 * s), (150, 8 * s), (140, 24 * s), (105, 30 * s)], self.dots(0.22))
-                self.blob(ctx, [(5, 50 * s), (40, 52 * s), (30, 68 * s), (2, 66 * s)], self.dots(0.22))
-                # krawędź natarcia, lotki, klapy
-                line(ctx, [(L - 30, 4 * s), (2, 70 * s)], hx("#ffffff"), lw=0.8)
-                line(ctx, [(9, 12 * s), (9, 64 * s)], panel, lw=0.3)
-                for y in (12, 38, 64):
-                    line(ctx, [(0, y * s), (9, y * s)], panel, lw=0.3)
-                # przednie skrzydełka
-                poly(ctx, [(L - 75, 22 * s), (L - 40, 22 * s), (L - 70, 60 * s), (L - 95, 60 * s)], self.dots(0.28),
-                     stroke=panel, lw=0.3)
-                p = self.fit("top", 14, 14, (55, 45 * s))
-                if p:
-                    checker(ctx, p[0], p[1], 11)
-                self.label(ctx, "top", "21", (120, 32 * s), 7, rgb=self.c(0.4))
-            # kabina na grzbiecie, ciemny stożek nosa i pas przeciwodblaskowy
-            poly(ctx, [(L - 70, -2.6), (L - 22, -3), (L - 22, 3), (L - 70, 2.6)], self.dots(0.45))
-            ellipse(ctx, L - 48, 0, 16, 3, Dots(hx("#2f6aa8"), 0.42), stroke=self.c(0.4), lw=0.3)
-            ellipse(ctx, L - 44, 0.8, 6, 0.8, hx("#ffffff"))
-            poly(ctx, [(L - 22, -7), (L + 6, 0), (L - 22, 7)], self.dots(0.5))
+                self.stripes(ctx, s, 0, 0, 66, 11, black)
+                self.stripes(ctx, s, 70, 0, 36, 23, black)
+                # przednie skrzydełka: biel z czarną krawędzią
+                poly(ctx, [(L - 75, 22 * s), (L - 40, 22 * s), (L - 70, 60 * s), (L - 95, 60 * s)], white,
+                     stroke=hx("#1d1a18"), lw=0.5)
+                for k in range(2):
+                    line(ctx, [(L - 84 + k * 8, 50 * s), (L - 66 + k * 8, 30 * s)], self.c(), lw=1.6)
+                line(ctx, [(L - 30, 4 * s), (2, 70 * s)], white, lw=0.7)
+                self.label(ctx, "top", "TIGER", (128, 30 * s), 4.5, rgb=hx("#1d1a18"))
+            # grzbiet: czarny pas z kabiną, nos w kolorze
+            poly(ctx, [(L - 120, -3), (L - 22, -3.5), (L - 22, 3.5), (L - 120, 3)], black)
+            ellipse(ctx, L - 50, 0, 16, 3, Dots(hx("#5aa0d8"), 0.5), stroke=white, lw=0.4)
+            ellipse(ctx, L - 46, 0.8, 6, 0.8, white)
+            poly(ctx, [(L - 22, -7), (L + 6, 0), (L - 22, 7)], self.dots(0.5, k=0.25))
         elif view == "bottom":
-            fill(ctx, self.dots(0.04))
+            fill(ctx, self.dots(0.08))
             for s in (1, -1):
-                p = self.fit("bottom", 13, 13, (110, 24 * s))
-                if p:
-                    checker(ctx, p[0], p[1], 10)
-            # podwieszony zbiornik paliwa
-            poly(ctx, [(95, -2), (150, -2), (158, 0), (150, 2), (95, 2)], hx("#ffffff"), stroke=panel, lw=0.3)
+                self.stripes(ctx, s, 60, 0, 40, 5, Dots(hx("#1d1a18"), 0.35))
+            poly(ctx, [(95, -2), (150, -2), (158, 0), (150, 2), (95, 2)], white, stroke=hx("#1d1a18"), lw=0.3)
             poly(ctx, [(L - 22, -6), (L + 6, 0), (L - 22, 6)], self.dots(0.4))
         else:
             u = -1 if view == "left" else 1
-            fill(ctx, self.dots(0.1))
-            line(ctx, [(60 * u, 3), (180 * u, 3)], panel, lw=0.3)
-            self.label(ctx, view, "21", (150 * u, 8), 5, rgb=self.c(0.4))
+            fill(ctx, self.dots(0.4))
+            for k in range(6):
+                x = (70 + k * 17) * u
+                poly(ctx, [(x, -2), (x + 4 * u, -2), (x + 10 * u, 14), (x + 7 * u, 14)], black)
+            self.label(ctx, view, "21", (160 * u, 8), 5, rgb=hx("#1d1a18"))

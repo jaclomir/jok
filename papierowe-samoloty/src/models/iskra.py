@@ -31,38 +31,44 @@ class Iskra(Model):
 
     # ------------------------------------------------------------------
     tagline = "Szeroka delta – złożysz ją w minutę"
-    style = "realistyczny: biało-kolorowy samolot szkolno-akrobacyjny"
+    style = "realistyczny: samolot akrobacyjny z promieniami od nosa"
     fly = "Rzucaj płasko i średnio mocno. Leci szybko i prosto; podegnij tylne krawędzie, jeśli nurkuje."
     difficulty = 1
     inks = {"main": "#d62f3d"}
 
     def art(self, ctx, view, piece):
+        import math
         from paint import hx, fill, poly, line, ellipse, checker, Dots
         L = self.H - self.NOS
-        grey = hx("#9aa4b0")
-        fill(ctx, hx("#ffffff"))
+        white = hx("#ffffff")
+        fill(ctx, white)
         if piece.zone == "winglet":
-            fill(ctx, self.dots(0.45))
+            fill(ctx, self.dots(0.5))
             return
-        if view == "top" or view == "bottom":
-            tint = 0.42 if view == "top" else 0.3
-            # kolorowy pas wzdłuż tylnej krawędzi i dwa skośne pasy jak na samolotach akrobacyjnych
-            poly(ctx, [(-10, -100), (26, -100), (26, 100), (-10, 100)], self.dots(tint))
-            line(ctx, [(26, -100), (26, 100)], self.c(0.1), lw=0.5)
+        if view in ("top", "bottom"):
+            cov = 0.62 if view == "top" else 0.4
+            # promienie z punktu przed nosem, na przemian kolor i biel
+            ox, oy = L + 40, 0
             for s in (1, -1):
-                for k, w in ((0, 2.2), (1, 1.2)):
-                    off = 9 * k
-                    line(ctx, [(L - 40 - off, 2 * s), (30 - off, 72 * s)], self.c(0.05), lw=w)
-                line(ctx, [(8, 8 * s), (8, 56 * s)], grey, lw=0.3)
-                p = self.fit(view, 14, 14, (75, 22 * s))
+                for k in range(5):
+                    a0 = math.radians(158 + k * 5.2)
+                    a1 = math.radians(158 + k * 5.2 + 2.9)
+                    R = 400
+                    poly(ctx, [(ox, oy), (ox + R * math.cos(a0), oy + s * R * math.sin(a0)),
+                               (ox + R * math.cos(a1), oy + s * R * math.sin(a1))], self.dots(cov))
+                # końcówki skrzydeł
+                poly(ctx, [(-10, 64 * s), (60, 64 * s), (60, 100 * s), (-10, 100 * s)], self.dots(cov))
+                line(ctx, [(-10, 64 * s), (60, 64 * s)], self.c(0.1), lw=0.6)
+                p = self.fit(view, 15, 15, (95, 26 * s))
                 if p:
-                    checker(ctx, p[0], p[1], 11 if view == "top" else 10)
-            poly(ctx, [(L - 22, -6), (L + 6, 0), (L - 22, 6)], self.dots(0.45))
+                    checker(ctx, p[0], p[1], 12 if view == "top" else 10)
+            poly(ctx, [(L - 24, -6.5), (L + 6, 0), (L - 24, 6.5)], self.dots(0.55, k=0.2))
             if view == "top":
-                ellipse(ctx, L - 42, 0, 15, 3, Dots(hx("#2f6aa8"), 0.42), stroke=hx("#3b4552"), lw=0.3)
-                ellipse(ctx, L - 38, 0.8, 6, 0.8, hx("#ffffff"))
-                self.label(ctx, "top", "1", (120, 30), 8, rgb=self.c(0.3))
+                ellipse(ctx, L - 46, 0, 16, 3.2, Dots(hx("#2f6aa8"), 0.45), stroke=hx("#3b4552"), lw=0.3)
+                ellipse(ctx, L - 42, 0.8, 6, 0.8, white)
+                self.label(ctx, "top", "1", (40, 30), 9, rgb=self.c(0.3))
         else:
             u = -1 if view == "left" else 1
-            line(ctx, [(30 * u, 4), (170 * u, 4)], self.c(), lw=1.0)
-            self.label(ctx, view, "ISKRA", (110 * u, 11), 5, rgb=self.c(0.3))
+            line(ctx, [(20 * u, 3), (175 * u, 3)], self.c(), lw=1.6)
+            line(ctx, [(20 * u, 5.5), (175 * u, 5.5)], self.c(), lw=0.5)
+            self.label(ctx, view, "ISKRA", (110 * u, 12), 6, rgb=self.c(0.3))

@@ -23,48 +23,59 @@ class Grot(Model):
 
     # ------------------------------------------------------------------
     tagline = "Klasyczna strzała – szybka i prosta"
-    style = "realistyczny: myśliwiec w kamuflażu z szachownicą"
+    style = "realistyczny: pokazowy myśliwiec z biało-czerwoną wstęgą"
     fly = "Rzucaj mocno i prosto, lekko w dół. Leci szybko i daleko – to klasyczna strzała."
     difficulty = 1
-    inks = {"main": "#5f6e7d"}
+    inks = {"main": "#3b4b5e"}
+
+    def ribbon(self, s):
+        """Wstęga przez skrzydło: od grzbietu przy kabinie łukiem do końca skrzydła."""
+        from paint import bez_pts
+        return bez_pts((205, 1 * s), (150, 8 * s), (95, 52 * s), (20, 62 * s), 50)
 
     def art(self, ctx, view, piece):
-        from paint import hx, fill, poly, ellipse, line, checker, splinter, Dots
+        from paint import hx, fill, poly, ellipse, line, checker, band, offset_line, Dots
         L = self.H
-        panel = self.c(0.15)
+        red = hx("#d4213d")
+        white = hx("#ffffff")
         if view == "top":
-            fill(ctx, self.dots(0.11))
-            splinter(ctx, -10, -70, 300, 70, [self.dots(0.2), self.dots(0.28), self.dots(0.16)], n=22, seed=7)
+            fill(ctx, self.dots(0.4))
+            # jaśniejszy klin przy krawędzi natarcia (efekt światła)
             for s in (1, -1):
-                line(ctx, [(L - 6, 0.5 * s), (0, 63 * s)], hx("#ffffff"), lw=0.8)
-                for x in (60, 110, 160, 210):
-                    line(ctx, [(x, 2 * s), (x, 63 * (1 - x / L) * s)], panel, lw=0.2)
-                line(ctx, [(10, 26 * s), (10, 54 * s)], panel, lw=0.35)
-                line(ctx, [(0, 26 * s), (10, 26 * s)], panel, lw=0.35)
-                p = self.fit("top", 16, 16, (62, 36 * s))
+                poly(ctx, [(L, 0), (0, 63 * s), (0, 52 * s), (L - 30, 4 * s)], self.dots(0.26))
+                r = self.ribbon(s)
+                poly(ctx, band(r, 14, 9), white)
+                line(ctx, offset_line(r, 3.2 * s), red, lw=2.2)
+                line(ctx, offset_line(r, -5.6 * s), red, lw=0.6)
+                line(ctx, offset_line(r, 6.4 * s), red, lw=0.6)
+                # linie paneli, lotki
+                for x in (60, 120, 230):
+                    line(ctx, [(x, 2 * s), (x, 63 * (1 - x / L) * s)], self.c(0.35), lw=0.18)
+                line(ctx, [(10, 22 * s), (10, 52 * s)], self.c(0.4), lw=0.35)
+                line(ctx, [(0, 22 * s), (10, 22 * s)], self.c(0.4), lw=0.35)
+                p = self.fit("top", 17, 17, (55, 40 * s))
                 if p:
-                    checker(ctx, p[0], p[1], 13)
-                self.label(ctx, "top", "07", (125, 22 * s), 8, rgb=self.c(0.35))
-                self.label(ctx, "top", "NIE STAWAĆ", (95, 9 * s), 2.2, rgb=self.c(0.3), bold=False)
-            poly(ctx, [(L - 100, -3), (L - 40, -3.5), (L - 40, 3.5), (L - 100, 3)], self.dots(0.45))
-            ellipse(ctx, L - 72, 0, 22, 3.4, Dots(hx("#2f6aa8"), 0.42), stroke=self.c(0.4), lw=0.3)
-            ellipse(ctx, L - 66, 1.0, 8, 1.0, hx("#ffffff"))
-            poly(ctx, [(L - 34, -4.5), (L + 4, 0), (L - 34, 4.5)], self.dots(0.4))
+                    checker(ctx, p[0], p[1], 14)
+                self.label(ctx, "top", "07", (150, 20 * s), 9, rgb=white)
+            # kabina, pas przeciwodblaskowy, stożek nosa
+            poly(ctx, [(L - 110, -3), (L - 38, -3.5), (L - 38, 3.5), (L - 110, 3)], self.dots(0.6, k=0.35))
+            ellipse(ctx, L - 75, 0, 22, 3.4, Dots(hx("#5aa0d8"), 0.5), stroke=hx("#ffffff"), lw=0.4)
+            ellipse(ctx, L - 69, 1.0, 8, 1.0, white)
+            poly(ctx, [(L - 34, -4.5), (L + 4, 0), (L - 34, 4.5)], self.dots(0.55, k=0.3))
         elif view == "bottom":
-            fill(ctx, self.dots(0.06))
+            fill(ctx, Dots(hx("#8d97a2"), 0.08))
             for s in (1, -1):
-                p = self.fit("bottom", 15, 15, (180, 28 * s))
+                p = self.fit("bottom", 16, 16, (180, 28 * s))
                 if p:
                     checker(ctx, p[0], p[1], 12)
                 y, x0 = 14 * s, 205
                 poly(ctx, [(x0, y - 1.4), (x0 + 50, y - 1.4), (x0 + 58, y), (x0 + 50, y + 1.4), (x0, y + 1.4)],
-                     hx("#ffffff"), stroke=self.c(0.2), lw=0.3)
-                poly(ctx, [(x0 + 50, y - 1.4), (x0 + 58, y), (x0 + 50, y + 1.4)], hx("#d4213d"))
-                line(ctx, [(x0 + 2, y), (x0 - 5, y + 4 * s)], self.c(0.2), lw=0.3)
-            line(ctx, [(60, 0), (L, 0)], panel, lw=0.2)
+                     white, stroke=self.c(0.2), lw=0.3)
+                poly(ctx, [(x0 + 50, y - 1.4), (x0 + 58, y), (x0 + 50, y + 1.4)], red)
         else:
             u = -1 if view == "left" else 1
-            fill(ctx, self.dots(0.12))
-            line(ctx, [(150 * u, 4), (290 * u, 1.5)], hx("#d4213d"), lw=0.9)
-            poly(ctx, [(150 * u, 1), (172 * u, 1), (172 * u, 5), (150 * u, 6)], self.dots(0.4), stroke=panel, lw=0.25)
-            self.label(ctx, view, "07", (215 * u, 8), 6, rgb=self.c(0.35))
+            fill(ctx, self.dots(0.36))
+            line(ctx, [(140 * u, 3.5), (290 * u, 1.2)], white, lw=1.6)
+            line(ctx, [(140 * u, 2.2), (290 * u, 0.5)], red, lw=0.6)
+            poly(ctx, [(150 * u, 4.5), (172 * u, 4.5), (172 * u, 8), (150 * u, 9)], self.dots(0.5, k=0.3))
+            self.label(ctx, view, "07", (215 * u, 9), 6, rgb=white)

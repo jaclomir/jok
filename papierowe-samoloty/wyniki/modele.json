@@ -3,25 +3,25 @@
     "slug": "grot",
     "nazwa": "Grot",
     "opis": "Klasyczna strzała – szybka i prosta",
-    "styl": "realistyczny: myśliwiec w kamuflażu z szachownicą",
+    "styl": "realistyczny: pokazowy myśliwiec z biało-czerwoną wstęgą",
     "trudnosc": 1,
     "orientacja": "pionowa",
     "widoczny_nadruk_proc": 65,
     "kroki": 8,
-    "tusz_srednio_proc": 14,
-    "tusz_max_30mm_proc": 39
+    "tusz_srednio_proc": 25,
+    "tusz_max_30mm_proc": 58
   },
   {
     "slug": "albatros",
     "nazwa": "Albatros",
     "opis": "Szeroki szybowiec – długi, spokojny lot w domu",
-    "styl": "realistyczny: biały szybowiec z kolorowymi paskami",
+    "styl": "realistyczny: biały szybowiec wyczynowy z kolorowymi łukami",
     "trudnosc": 2,
     "orientacja": "pozioma",
     "widoczny_nadruk_proc": 72,
     "kroki": 10,
-    "tusz_srednio_proc": 8,
-    "tusz_max_30mm_proc": 48
+    "tusz_srednio_proc": 9,
+    "tusz_max_30mm_proc": 55
   },
   {
     "slug": "jerzyk",
@@ -39,36 +39,36 @@
     "slug": "sokol",
     "nazwa": "Sokół",
     "opis": "Odrzutowiec z przednimi skrzydełkami – stabilny i długo leci",
-    "styl": "realistyczny: myśliwiec z przednimi skrzydełkami, dwubarwny kamuflaż",
+    "styl": "realistyczny: myśliwiec w tygrysim malowaniu pokazowym",
     "trudnosc": 3,
     "orientacja": "pionowa",
     "widoczny_nadruk_proc": 70,
     "kroki": 10,
-    "tusz_srednio_proc": 13,
-    "tusz_max_30mm_proc": 37
+    "tusz_srednio_proc": 31,
+    "tusz_max_30mm_proc": 82
   },
   {
     "slug": "iskra",
     "nazwa": "Iskra",
     "opis": "Szeroka delta – złożysz ją w minutę",
-    "styl": "realistyczny: biało-kolorowy samolot szkolno-akrobacyjny",
+    "styl": "realistyczny: samolot akrobacyjny z promieniami od nosa",
     "trudnosc": 1,
     "orientacja": "pozioma",
     "widoczny_nadruk_proc": 89,
     "kroki": 9,
-    "tusz_srednio_proc": 9,
-    "tusz_max_30mm_proc": 50
+    "tusz_srednio_proc": 20,
+    "tusz_max_30mm_proc": 63
   },
   {
     "slug": "bryza",
     "nazwa": "Bryza",
     "opis": "Tępy nos z zamkiem – stabilny lot w domu",
-    "styl": "realistyczny: dwusilnikowy samolot patrolowy",
+    "styl": "realistyczny: dwusilnikowy samolot ratowniczy z pasami ostrzegawczymi",
     "trudnosc": 3,
     "orientacja": "pionowa",
     "widoczny_nadruk_proc": 52,
     "kroki": 10,
-    "tusz_srednio_proc": 11,
-    "tusz_max_30mm_proc": 54
+    "tusz_srednio_proc": 10,
+    "tusz_max_30mm_proc": 48
   }
 ]

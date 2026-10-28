@@ -60,50 +60,60 @@ class Bryza(Model):
 
     # ------------------------------------------------------------------
     tagline = "Tępy nos z zamkiem – stabilny lot w domu"
-    style = "realistyczny: dwusilnikowy samolot patrolowy"
+    style = "realistyczny: dwusilnikowy samolot ratowniczy z pasami ostrzegawczymi"
     fly = "Rzucaj delikatnie przed siebie. Ciężki, zablokowany nos daje bardzo stabilny lot w pokoju."
     difficulty = 3
     inks = {"main": "#e0542a"}
 
     def art(self, ctx, view, piece):
-        from paint import hx, fill, poly, rect, line, circle, ellipse, feat, Dots
+        from paint import hx, fill, poly, rect, line, circle, Dots
         L = 138.0
-        grey, dark = hx("#8d97a2"), hx("#2b3036")
-        fill(ctx, Dots(hx("#8d97a2"), 0.06))
+        grey, dark, white = hx("#8d97a2"), hx("#2b3036"), hx("#ffffff")
+        fill(ctx, white)
         if piece.zone == "winglet":
-            fill(ctx, self.dots(0.22))
-            line(ctx, [(-300, 52), (300, 52)], hx("#ffffff"), lw=1.2)
+            fill(ctx, self.dots(0.4))
+            for k in range(3):
+                line(ctx, [(-300, 48 + k * 7), (300, 48 + k * 7)], white, lw=2.2)
             return
         if view == "top":
             for s in (1, -1):
-                # końcówki skrzydeł w kolorze ostrzegawczym
-                rect(ctx, -10, min(56 * s, 80 * s), 200, max(56 * s, 80 * s), self.dots(0.3))
-                line(ctx, [(-10, 56 * s), (200, 56 * s)], self.c(0.1), lw=0.6)
-                # gondole silników z kołpakami i śmigłami
-                p = self.fit("top", 46, 28, (L - 30, 33 * s))
-                if not p:
-                    continue
-                x0, y = p[0] + 22 - L, p[1]
+                # końcówki skrzydeł w ukośne pasy ostrzegawcze
                 ctx.save()
-                ctx.translate(x0, 0)
-                poly(ctx, [(L - 52, y - 4.5), (L - 18, y - 5), (L - 12, y), (L - 18, y + 5), (L - 52, y + 4.5)],
-                     Dots(grey, 0.32), stroke=grey, lw=0.35)
-                circle(ctx, L - 10, y, 2.2, dark)
-                line(ctx, [(L - 9, y - 13), (L - 9, y + 13)], dark, lw=0.6)
+                ctx.rectangle(-10, min(56 * s, 80 * s), 210, 24)
+                ctx.clip()
+                fill(ctx, self.dots(0.62))
+                for k in range(-6, 30):
+                    x = k * 9
+                    poly(ctx, [(x, 50 * s), (x + 4, 50 * s), (x + 4 + 26, 86 * s), (x + 26, 86 * s)], white)
                 ctx.restore()
-                # lotki i klapy
+                line(ctx, [(-10, 56 * s), (200, 56 * s)], self.c(0.2), lw=0.6)
+                # gondole silników ze śmigłami
+                p = self.fit("top", 46, 28, (L - 30, 30 * s))
+                if p:
+                    ctx.save()
+                    ctx.translate(p[0] + 22 - L, 0)
+                    y = p[1]
+                    poly(ctx, [(L - 52, y - 4.5), (L - 18, y - 5), (L - 12, y), (L - 18, y + 5), (L - 52, y + 4.5)],
+                         Dots(grey, 0.35), stroke=dark, lw=0.35)
+                    line(ctx, [(L - 30, y - 5), (L - 30, y + 5)], self.c(), lw=1.0)
+                    circle(ctx, L - 10, y, 2.2, self.c(0.2))
+                    line(ctx, [(L - 9, y - 13), (L - 9, y + 13)], dark, lw=0.6)
+                    ctx.restore()
                 line(ctx, [(9, 4 * s), (9, 54 * s)], grey, lw=0.3)
                 for yy in (4, 28, 54):
                     line(ctx, [(0, yy * s), (9, yy * s)], grey, lw=0.3)
-            # okna kabiny przy nosie (na grzbiecie)
-            poly(ctx, [(L - 12, -6), (L - 4, -5), (L - 4, 5), (L - 12, 6)], Dots(hx("#2f6aa8"), 0.45), stroke=dark, lw=0.3)
-            self.label(ctx, "top", "SP-BRZ", (60, 26), 7, rgb=dark, bold=False)
-            self.label(ctx, "top", "1017", (60, -26), 7, rgb=dark)
+            # pas na grzbiecie, okna kabiny, nos
+            rect(ctx, -10, -3, L - 14, 3, self.dots(0.6))
+            poly(ctx, [(L - 13, -6), (L - 4, -5), (L - 4, 5), (L - 13, 6)], Dots(hx("#2f6aa8"), 0.5), stroke=dark, lw=0.3)
+            self.label(ctx, "top", "SP-BRZ", (55, 30), 7, rgb=dark, bold=False)
+            self.label(ctx, "top", "RATUNEK", (55, -30), 6, rgb=self.c(0.25))
         elif view == "bottom":
-            self.label(ctx, "bottom", "1017", (L - 25, 18), 6, rgb=dark)
-            rect(ctx, L - 50, -40, L - 47, 40, self.c())
+            fill(ctx, Dots(grey, 0.06))
+            self.label(ctx, "bottom", "SP-BRZ", (L - 25, 18), 6, rgb=dark)
+            rect(ctx, L - 50, -40, L - 46, 40, self.c())
         else:
             u = -1 if view == "left" else 1
-            rect(ctx, min((L - 50) * u, (L - 47) * u), -5, max((L - 50) * u, (L - 47) * u), 60, self.c())
+            rect(ctx, -300, 1, 300, 4, self.dots(0.42))
+            rect(ctx, min((L - 50) * u, (L - 46) * u), -5, max((L - 50) * u, (L - 46) * u), 60, self.c())
             for k in range(4):
                 circle(ctx, (L - 18 - k * 7) * u, 12, 1.3, Dots(hx("#2f6aa8"), 0.5))

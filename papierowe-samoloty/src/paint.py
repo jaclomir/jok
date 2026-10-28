@@ -251,3 +251,42 @@ def mirror_y(ctx, fn):
     ctx.scale(1, -1)
     fn(-1)
     ctx.restore()
+
+
+def bez_pts(p0, c1, c2, p1, n=40):
+    """Punkty krzywej Béziera trzeciego stopnia."""
+    out = []
+    for i in range(n + 1):
+        t = i / n
+        a, b, c, d = (1 - t) ** 3, 3 * (1 - t) ** 2 * t, 3 * (1 - t) * t ** 2, t ** 3
+        out.append((a * p0[0] + b * c1[0] + c * c2[0] + d * p1[0], a * p0[1] + b * c1[1] + c * c2[1] + d * p1[1]))
+    return out
+
+
+def band(pts, w0, w1=None, off=0.0):
+    """Wielokąt pasa wzdłuż łamanej `pts`: szerokość zmienia się od w0 do w1, `off` przesuwa go w bok."""
+    w1 = w0 if w1 is None else w1
+    n = len(pts)
+    left, right = [], []
+    for i, (x, y) in enumerate(pts):
+        a = pts[max(0, i - 1)]
+        b = pts[min(n - 1, i + 1)]
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        L = math.hypot(dx, dy) or 1
+        nx, ny = -dy / L, dx / L
+        w = (w0 + (w1 - w0) * i / max(1, n - 1)) / 2
+        left.append((x + nx * (off + w), y + ny * (off + w)))
+        right.append((x + nx * (off - w), y + ny * (off - w)))
+    return left + right[::-1]
+
+
+def offset_line(pts, off):
+    out = []
+    n = len(pts)
+    for i, (x, y) in enumerate(pts):
+        a = pts[max(0, i - 1)]
+        b = pts[min(n - 1, i + 1)]
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        L = math.hypot(dx, dy) or 1
+        out.append((x - dy / L * off, y + dx / L * off))
+    return out
