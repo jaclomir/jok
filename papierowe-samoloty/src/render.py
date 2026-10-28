@@ -44,12 +44,12 @@ def paper_ctx(surface, W, H, scale):
 
 
 # ----------------------------------------------------------------------
-def paint_sheet(ctx, model, pieces, bleed=3.0, lines=True, numbers=True):
+def paint_sheet(ctx, model, pieces, bleed=3.0, lines=True, numbers=True, art=True):
     """Rysuje cały nadruk na kartce (współrzędne kartki, y w górę)."""
     W, H = model.W, model.H
-    printed = [p for p in pieces if p.printed]
+    printed = [p for p in pieces if p.printed] if art else []
     # tło w miejscach ukrytych
-    if model.hidden_fill:
+    if art and model.hidden_fill:
         ctx.save()
         ctx.rectangle(0, 0, W, H)
         ctx.set_source_rgb(*model.hidden_fill)

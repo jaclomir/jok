@@ -5,8 +5,9 @@ const PDFLib = require(process.env.PDFLIB || path.join(__dirname, 'pdf-lib.min.j
 const S = require('./samoloty-core.js');
 (async () => {
   const [, , wej, wyj, kol] = process.argv;
+  const bez = kol === 'linie';
   const model = JSON.parse(fs.readFileSync(wej, 'utf8'));
-  const kolory = Object.assign({}, model.kolory, kol ? { main: kol } : {});
-  const bytes = await S.pdf(PDFLib, model, kolory);
+  const kolory = Object.assign({}, model.kolory, kol && !bez ? { main: kol } : {});
+  const bytes = await S.pdf(PDFLib, model, kolory, null, bez);
   fs.writeFileSync(wyj, bytes);
 })().catch(e => { console.error(e); process.exit(1); });

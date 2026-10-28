@@ -38,37 +38,37 @@
   {
     "slug": "kaczka",
     "nazwa": "Kaczka",
-    "opis": "Kaczka z przednimi skrzydełkami – stabilna i zabawna",
-    "styl": "kreskówkowy: kaczątko",
+    "opis": "Odrzutowiec z przednimi skrzydełkami – stabilny i długo leci",
+    "styl": "realistyczny: myśliwiec w układzie kaczki, dwubarwny kamuflaż",
     "trudnosc": 3,
     "orientacja": "pionowa",
     "widoczny_nadruk_proc": 70,
     "kroki": 10,
-    "tusz_srednio_proc": 16,
-    "tusz_max_30mm_proc": 46
+    "tusz_srednio_proc": 13,
+    "tusz_max_30mm_proc": 37
   },
   {
-    "slug": "mops",
-    "nazwa": "Mops",
+    "slug": "iskra",
+    "nazwa": "Iskra",
+    "opis": "Szeroka delta – złożysz ją w minutę",
+    "styl": "realistyczny: biało-kolorowy samolot szkolno-akrobacyjny",
+    "trudnosc": 1,
+    "orientacja": "pozioma",
+    "widoczny_nadruk_proc": 89,
+    "kroki": 9,
+    "tusz_srednio_proc": 9,
+    "tusz_max_30mm_proc": 50
+  },
+  {
+    "slug": "bryza",
+    "nazwa": "Bryza",
     "opis": "Tępy nos z zamkiem – stabilny lot w domu",
-    "styl": "kreskówkowy: mops z obrożą",
+    "styl": "realistyczny: dwusilnikowy samolot patrolowy",
     "trudnosc": 3,
     "orientacja": "pionowa",
     "widoczny_nadruk_proc": 52,
     "kroki": 10,
-    "tusz_srednio_proc": 14,
-    "tusz_max_30mm_proc": 48
-  },
-  {
-    "slug": "wazka",
-    "nazwa": "Ważka",
-    "opis": "Dwie pary skrzydeł – zwinna akrobatka",
-    "styl": "realistyczny: ważka o przezroczystych skrzydłach",
-    "trudnosc": 2,
-    "orientacja": "pozioma",
-    "widoczny_nadruk_proc": 53,
-    "kroki": 7,
-    "tusz_srednio_proc": 6,
-    "tusz_max_30mm_proc": 16
+    "tusz_srednio_proc": 11,
+    "tusz_max_30mm_proc": 54
   }
 ]

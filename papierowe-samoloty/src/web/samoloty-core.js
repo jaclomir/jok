@@ -72,7 +72,8 @@
     ctx.setTransform(skala, 0, 0, skala, 0, 0);
     ctx.fillStyle = opcje.papier || '#ffffff';
     ctx.fillRect(0, 0, W, H);
-    for (const op of model.ops) {
+    const lista = (opcje.bezMalowania ? [] : model.ops).concat(model.linie || []);
+    for (const op of lista) {
       const t = op[0];
       if (t === 'q') ctx.save();
       else if (t === 'Q') ctx.restore();
@@ -84,7 +85,6 @@
         ctx.fill(path2d(op[1], W, H));
         ctx.globalAlpha = 1;
       } else if (t === 's') {
-        if (opcje.bezLinii && op[2].h && op[5].length) continue;
         const c = kolor(op[2], kolory);
         ctx.globalAlpha = op[3];
         ctx.strokeStyle = rgbHex(c);
@@ -210,7 +210,7 @@
   }
 
   /* ---------- PDF (pdf-lib) ---------- */
-  async function pdf(PDFLib, model, kolory, meta) {
+  async function pdf(PDFLib, model, kolory, meta, bezMalowania) {
     const L = PDFLib;
     const doc = await L.PDFDocument.create();
     meta = meta || {};
@@ -239,7 +239,7 @@
       }
     };
     ops.push(L.pushGraphicsState(), L.concatTransformationMatrix(1, 0, 0, -1, 0, r2(H)));
-    for (const op of model.ops) {
+    for (const op of (bezMalowania ? [] : model.ops).concat(model.linie || [])) {
       const t = op[0];
       if (t === 'q') ops.push(L.pushGraphicsState());
       else if (t === 'Q') ops.push(L.popGraphicsState());

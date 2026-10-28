@@ -12,7 +12,7 @@
   ];
   const TRUDNOSC = ['', 'łatwy', 'średni', 'trudniejszy'];
 
-  const st = { model: DANE[0].slug, kolor: null, widok: 'gora', instr: false };
+  const st = { model: DANE[0].slug, kolor: null, widok: 'gora', instr: false, linie: false };
   const cache = new Map();
   let pdfUrl = null, pdfTimer = null, pdfNr = 0;
 
@@ -23,8 +23,8 @@
 
   // arkusz jako obraz – gładki odcień zamiast kropek, bo na ekranie kropki dają mory
   function arkusz(m, ppmm, gladko) {
-    const k = m.slug + '|' + (st.kolor || '') + '|' + ppmm + '|' + gladko;
-    if (!cache.has(k)) cache.set(k, S.arkuszCanvas(m, kolory(m), ppmm, { gladko }));
+    const k = m.slug + '|' + (st.kolor || '') + '|' + ppmm + '|' + gladko + '|' + st.linie;
+    if (!cache.has(k)) cache.set(k, S.arkuszCanvas(m, kolory(m), ppmm, { gladko, bezMalowania: st.linie }));
     return cache.get(k);
   }
 
@@ -34,11 +34,13 @@
     if (DANE.some(m => m.slug === q.get('model'))) st.model = q.get('model');
     const k = q.get('kolor');
     if (k && /^[0-9a-f]{6}$/i.test(k)) st.kolor = '#' + k.toLowerCase();
+    st.linie = q.get('malowanie') === '0';
   }
   function zapiszAdres() {
     const q = new URLSearchParams();
     q.set('model', st.model);
     if (st.kolor) q.set('kolor', st.kolor.slice(1));
+    if (st.linie) q.set('malowanie', '0');
     try { history.replaceState(null, '', '?' + q.toString()); } catch (e) { /* plik lokalny */ }
   }
 
@@ -86,7 +88,7 @@
       b.setAttribute('aria-label', 'Kolor: ' + n);
       b.dataset.hex = hex || '';
       b.style.background = hex || 'conic-gradient(#d62f3d, #e9b500, #2e9d5b, #2a6fd6, #7b4fc9, #d62f3d)';
-      b.addEventListener('click', () => { st.kolor = hex; zmiana(); });
+      b.addEventListener('click', () => { st.kolor = hex; st.linie = false; zmiana(); });
       k.appendChild(b);
     }
     const inp = document.createElement('input');
@@ -94,12 +96,15 @@
     inp.id = 'kolorWlasny';
     inp.title = 'Własny kolor';
     inp.setAttribute('aria-label', 'Własny kolor');
-    inp.addEventListener('input', () => { st.kolor = inp.value.toLowerCase(); zmiana(); });
+    inp.addEventListener('input', () => { st.kolor = inp.value.toLowerCase(); st.linie = false; zmiana(); });
     k.appendChild(inp);
   }
   function zaznaczKolor() {
     for (const b of $('kolory').querySelectorAll('button')) b.setAttribute('aria-pressed', String((b.dataset.hex || null) === st.kolor));
     $('kolorWlasny').value = st.kolor || model().kolory.main;
+    $('bezMal').checked = st.linie;
+    $('kolory').classList.toggle('wylaczone', st.linie);
+    if (st.linie) { $('kolorNazwa').textContent = 'malowanie wyłączone – drukują się same linie zgięć'; return; }
     $('kolorNazwa').textContent = st.kolor ? nazwaKoloru() + (nazwaKoloru() === 'własny' ? ' ' + st.kolor : '') : 'naturalny dla modelu';
   }
 
@@ -122,9 +127,10 @@
     }
     // lupa: fragment arkusza z prawdziwymi kropkami, mniej więcej w skali 1:1
     const l = $('lupa');
+    l.parentElement.hidden = st.linie;
     const ppmm = 3.78 * dpr();
-    const k = 'lupa|' + m.slug + '|' + (st.kolor || '');
-    if (!cache.has(k)) cache.set(k, S.arkuszCanvas(m, kolory(m), ppmm, { gladko: false }));
+    const k = 'lupa|' + m.slug + '|' + (st.kolor || '') + '|' + st.linie;
+    if (!cache.has(k)) cache.set(k, S.arkuszCanvas(m, kolory(m), ppmm, { gladko: false, bezMalowania: st.linie }));
     const big = cache.get(k);
     l.width = Math.round(220 * dpr()); l.height = Math.round(120 * dpr());
     const fx = m.lupa ? m.lupa[0] : 0.5, fy = m.lupa ? m.lupa[1] : 0.5;
@@ -189,16 +195,16 @@
     const nr = ++pdfNr;
     const m = model();
     try {
-      let bytes = await S.pdf(window.PDFLib, m, kolory(m), { tytul: m.nazwa + ' – papierowy samolot (domowydrukarz.pl)' });
+      let bytes = await S.pdf(window.PDFLib, m, kolory(m), { tytul: m.nazwa + ' – papierowy samolot (domowydrukarz.pl)' }, st.linie);
       if (st.instr) bytes = await dolaczInstrukcje(bytes, m);
       if (nr !== pdfNr) return;
       if (pdfUrl) URL.revokeObjectURL(pdfUrl);
       pdfUrl = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
-      const plik = 'samolot-' + m.slug + (st.kolor ? '-' + nazwaKoloru().replace(/[^a-zżźćńółęąś]/gi, '') : '') + '.pdf';
+      const plik = 'samolot-' + m.slug + (st.linie ? '-same-linie' : st.kolor ? '-' + nazwaKoloru().replace(/[^a-zżźćńółęąś]/gi, '') : '') + '.pdf';
       $('save').disabled = false;
       $('save').onclick = () => { const a = document.createElement('a'); a.href = pdfUrl; a.download = plik; document.body.appendChild(a); a.click(); a.remove(); };
       $('open').href = pdfUrl;
-      $('stats').innerHTML = '<b>' + m.nazwa + '</b>, A4 ' + (m.W > m.H ? 'poziomo' : 'pionowo') + ', kolor: ' + (st.kolor ? nazwaKoloru() : 'naturalny') +
+      $('stats').innerHTML = '<b>' + m.nazwa + '</b>, A4 ' + (m.W > m.H ? 'poziomo' : 'pionowo') + ', ' + (st.linie ? 'same linie zgięć' : 'kolor: ' + (st.kolor ? nazwaKoloru() : 'naturalny')) +
         ' · ' + (st.instr ? '2 strony' : '1 strona') + ' · ' + Math.max(1, Math.round(bytes.length / 1024)) + ' KB';
     } catch (e) {
       console.error(e);
@@ -267,6 +273,7 @@
     rysujKolory();
     for (const b of document.querySelectorAll('#widoki button')) b.addEventListener('click', () => { st.widok = b.dataset.w; podglad(); });
     $('instr').addEventListener('change', e => { st.instr = e.target.checked; planujPdf(); });
+    $('bezMal').addEventListener('change', e => { st.linie = e.target.checked; zmiana(); });
     zmiana();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();

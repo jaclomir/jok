@@ -35,52 +35,69 @@ class Kaczka(Model):
                 Hinge((79, 83.6), (0, 89.4), 90, "winglet")]
 
     # ------------------------------------------------------------------
-    tagline = "Kaczka z przednimi skrzydełkami – stabilna i zabawna"
-    style = "kreskówkowy: kaczątko"
+    tagline = "Odrzutowiec z przednimi skrzydełkami – stabilny i długo leci"
+    style = "realistyczny: myśliwiec w układzie kaczki, dwubarwny kamuflaż"
     fly = "Rzucaj średnio mocno, poziomo. Przednie skrzydełka stabilizują lot – płynie długo i prosto."
     difficulty = 3
-    inks = {"main": "#f2b705"}
+    inks = {"main": "#3d6a94"}
+
+    def blob(self, ctx, pts, col):
+        """Gładka plama kamuflażu przez zadane punkty (zamknięta krzywa)."""
+        from paint import setc
+        n = len(pts)
+        ctx.new_path()
+        mid = lambda a, b: ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)  # noqa: E731
+        ctx.move_to(*mid(pts[-1], pts[0]))
+        for i in range(n):
+            p, q = pts[i], pts[(i + 1) % n]
+            m = mid(p, q)
+            ctx.curve_to(p[0], p[1], p[0], p[1], m[0], m[1])
+        ctx.close_path()
+        setc(ctx, col)
+        ctx.fill()
 
     def art(self, ctx, view, piece):
-        from paint import hx, fill, poly, line, circle, ellipse, curve, feat, Dots
+        from paint import hx, fill, poly, line, ellipse, checker, Dots
         L = 192.0
-        ora = hx("#f07a1a")
-        beak = Dots(ora, 0.24)
-        fill(ctx, self.dots(0.08))
+        panel = self.c(0.2)
         if piece.zone == "winglet":
-            for k in range(4):
-                line(ctx, [(-300, 4 + k * 3), (300, 4 + k * 3)], self.c(0.35), lw=0.3)
+            fill(ctx, self.dots(0.22))
             return
         if view == "top":
+            fill(ctx, self.dots(0.09))
+            # dwubarwny kamuflaż: łagodne plamy w ciemniejszym odcieniu
             for s in (1, -1):
-                for row, x0 in enumerate((2, 17)):
-                    for k in range(8):
-                        y = (10 + k * 9 + row * 4.5) * s
-                        ellipse(ctx, x0 + 9, y, 10, 4.6, self.dots(0.13), stroke=self.c(0.35), lw=0.35)
-                for k in range(7):
-                    curve(ctx, (55 + k * 15, 18 * s), (60 + k * 15, 23 * s), (64 + k * 15, 23 * s), (69 + k * 15, 18 * s),
-                          self.c(0.35), lw=0.35)
-                poly(ctx, [(L - 75, 22 * s), (L - 40, 22 * s), (L - 70, 60 * s), (L - 95, 60 * s)], beak, stroke=ora, lw=0.4)
-            poly(ctx, [(L - 22, -8), (L + 6, 0), (L - 22, 8)], beak, stroke=ora, lw=0.5)
-            line(ctx, [(L - 20, 0), (L + 2, 0)], ora, lw=0.4)
-            for s in (1, -1):
-                p = self.fit("top", 11, 11, (L - 36, 11 * s))
+                self.blob(ctx, [(20, 8 * s), (70, 5 * s), (95, 22 * s), (60, 40 * s), (15, 36 * s)], self.dots(0.22))
+                self.blob(ctx, [(110, 6 * s), (150, 8 * s), (140, 24 * s), (105, 30 * s)], self.dots(0.22))
+                self.blob(ctx, [(5, 50 * s), (40, 52 * s), (30, 68 * s), (2, 66 * s)], self.dots(0.22))
+                # krawędź natarcia, lotki, klapy
+                line(ctx, [(L - 30, 4 * s), (2, 70 * s)], hx("#ffffff"), lw=0.8)
+                line(ctx, [(9, 12 * s), (9, 64 * s)], panel, lw=0.3)
+                for y in (12, 38, 64):
+                    line(ctx, [(0, y * s), (9, y * s)], panel, lw=0.3)
+                # przednie skrzydełka
+                poly(ctx, [(L - 75, 22 * s), (L - 40, 22 * s), (L - 70, 60 * s), (L - 95, 60 * s)], self.dots(0.28),
+                     stroke=panel, lw=0.3)
+                p = self.fit("top", 14, 14, (55, 45 * s))
                 if p:
-                    circle(ctx, p[0], p[1], 4.6, hx("#ffffff"), stroke=hx("#333333"), lw=0.4)
-                    circle(ctx, p[0] + 1.3, p[1] + 0.4 * s, 2.2, hx("#2a2a2a"))
-                    circle(ctx, p[0] + 2.1, p[1] + 1.1 * s, 0.7, hx("#ffffff"))
-                    feat(ctx, "oko", p[0] - 5, p[1] - 5, p[0] + 5, p[1] + 5)
-                    circle(ctx, p[0] - 2, p[1] + 9 * s, 2.6, Dots(hx("#ef6f8f"), 0.35))
+                    checker(ctx, p[0], p[1], 11)
+                self.label(ctx, "top", "21", (120, 32 * s), 7, rgb=self.c(0.4))
+            # kabina na grzbiecie, ciemny stożek nosa i pas przeciwodblaskowy
+            poly(ctx, [(L - 70, -2.6), (L - 22, -3), (L - 22, 3), (L - 70, 2.6)], self.dots(0.45))
+            ellipse(ctx, L - 48, 0, 16, 3, Dots(hx("#2f6aa8"), 0.42), stroke=self.c(0.4), lw=0.3)
+            ellipse(ctx, L - 44, 0.8, 6, 0.8, hx("#ffffff"))
+            poly(ctx, [(L - 22, -7), (L + 6, 0), (L - 22, 7)], self.dots(0.5))
         elif view == "bottom":
-            fill(ctx, self.dots(0.05))
+            fill(ctx, self.dots(0.04))
             for s in (1, -1):
-                p = self.fit("bottom", 16, 16, (100, 25 * s))
+                p = self.fit("bottom", 13, 13, (110, 24 * s))
                 if p:
-                    x, y = p
-                    poly(ctx, [(x + 6, y), (x - 6, y - 6 * s), (x - 3, y), (x - 6, y + 6 * s)], beak, stroke=ora, lw=0.4)
-                    feat(ctx, "łapka", x - 7, y - 7, x + 7, y + 7)
-            poly(ctx, [(L - 22, -7), (L + 6, 0), (L - 22, 7)], beak)
+                    checker(ctx, p[0], p[1], 10)
+            # podwieszony zbiornik paliwa
+            poly(ctx, [(95, -2), (150, -2), (158, 0), (150, 2), (95, 2)], hx("#ffffff"), stroke=panel, lw=0.3)
+            poly(ctx, [(L - 22, -6), (L + 6, 0), (L - 22, 6)], self.dots(0.4))
         else:
             u = -1 if view == "left" else 1
-            for k in range(4):
-                ellipse(ctx, (75 + k * 16) * u, 9, 8, 3.4, self.dots(0.22), stroke=self.c(0.35), lw=0.3)
+            fill(ctx, self.dots(0.1))
+            line(ctx, [(60 * u, 3), (180 * u, 3)], panel, lw=0.3)
+            self.label(ctx, view, "21", (150 * u, 8), 5, rgb=self.c(0.4))

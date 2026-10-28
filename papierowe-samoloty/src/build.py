@@ -23,7 +23,7 @@ from render import MM, paint_sheet, paper_ctx, render_3d, render_flat, sheet_ima
 
 OUT = os.path.join(os.path.dirname(__file__), "..", "wyniki")
 MODELS = [("grot", "Grot"), ("albatros", "Albatros"), ("jerzyk", "Jerzyk"), ("kaczka", "Kaczka"),
-          ("mops", "Mops"), ("wazka", "Wazka")]
+          ("iskra", "Iskra"), ("bryza", "Bryza")]
 ACCENT = (0.10, 0.16, 0.30)
 FONT = "DejaVu Sans"
 
@@ -265,7 +265,9 @@ def build(slug, cls):
     with open(js, "w") as f:
         json.dump(export.model_data(M), f, ensure_ascii=False, separators=(",", ":"))
     arkusz = os.path.join(od, f"{slug}-tylko-wydruk.pdf")
-    subprocess.run(["node", os.path.join(os.path.dirname(__file__), "web", "pdf-node.js"), js, arkusz], check=True)
+    node = os.path.join(os.path.dirname(__file__), "web", "pdf-node.js")
+    subprocess.run(["node", node, js, arkusz], check=True)
+    subprocess.run(["node", node, js, os.path.join(od, f"{slug}-same-linie.pdf"), "linie"], check=True)
     # instrukcja (A4 pionowo) z cairo, doklejona jako strona 2
     instr = os.path.join(od, f".{slug}-instrukcja.pdf")
     surf = cairo.PDFSurface(instr, 210 * MM, 297 * MM)

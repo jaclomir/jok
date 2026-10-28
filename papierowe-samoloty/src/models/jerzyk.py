@@ -51,17 +51,15 @@ class Jerzyk(Model):
         if view == "top":
             fill(ctx, self.dots(0.06))
             for s in (1, -1):
+                # krawędź natarcia z przednimi klapami, lotki i klapy na tylnej krawędzi
                 line(ctx, [(L - 4, 1 * s), (L - 22, 92 * s)], hx("#ffffff"), lw=2.5)
-                line(ctx, [(22, 10 * s), (78, 10 * s), (78, 28 * s), (22, 28 * s), (22, 10 * s)], grey, lw=0.3,
-                     dash=[2, 1.5])
-                for k in range(4):
-                    line(ctx, [(3, (26 + 16 * k) * s), (3, (38 + 16 * k) * s)], grey, lw=0.3)
+                line(ctx, [(L - 10, 12 * s), (L - 26, 86 * s)], grey, lw=0.25)
+                line(ctx, [(10, 6 * s), (10, 84 * s)], grey, lw=0.3)
+                for y in (30, 52, 70):
+                    line(ctx, [(0, y * s), (10, y * s)], grey, lw=0.3)
                 rect(ctx, -10, min(87 * s, 90 * s), 200, max(87 * s, 90 * s), self.c())
-            p = self.fit("top", 40, 30, (55, -40))
-            if p:
-                self.swift(ctx, p[0] + 18, p[1], 2.3, self.dots(0.12), stroke=self.c(-0.0))
-            self.label(ctx, "top", "JERZYK", (50, 55), 8, rgb=self.c())
-            self.label(ctx, "top", "SP-JRZ", (50, -70), 6, rgb=self.c(), bold=False)
+            self.label(ctx, "top", "JERZYK", (50, 50), 8, rgb=self.c())
+            self.label(ctx, "top", "SP-JRZ", (50, -50), 7, rgb=self.c(), bold=False)
         elif view == "bottom":
             fill(ctx, self.dots(0.03))
             self.label(ctx, "bottom", "SP-JRZ", (75, 40), 9, rgb=self.c(), bold=False)

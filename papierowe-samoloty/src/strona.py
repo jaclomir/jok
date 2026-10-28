@@ -11,7 +11,7 @@ import os
 HERE = os.path.dirname(__file__)
 ROOT = os.path.join(HERE, "..")
 WEB = os.path.join(HERE, "web")
-KOLEJNOSC = ["grot", "albatros", "jerzyk", "wazka", "kaczka", "mops"]
+KOLEJNOSC = ["grot", "iskra", "albatros", "jerzyk", "kaczka", "bryza"]
 
 
 def czytaj(*p):
@@ -30,7 +30,7 @@ def strona():
           "Mniej tuszu to kartka, która się nie wygina. Pełna apla z drukarki atramentowej potrafi pofalować zwykły papier 80 g, "
           "a samolot z pofalowanej kartki lata krzywo."]),
         ("Czy mogę wybrać dowolny kolor?",
-         ["Tak. Wzór zostaje ten sam, a zmienia się kolor główny: kamuflaż Grota, paski Albatrosa, upierzenie Kaczki. "
+         ["Tak. Wzór zostaje ten sam, a zmienia się kolor główny: kamuflaż Grota, pasy Iskry, końcówki skrzydeł Albatrosa. "
           "Wybierz jedną z próbek albo własny kolor w kółku na końcu listy. Detale, takie jak oczy czy szachownica, mają stałe kolory."]),
         ("Czemu część samolotu jest biała?",
          ["Drukujemy jednostronnie, a po złożeniu część kartki pokazuje stronę bez nadruku – zwykle spód kadłuba i kawałek spodu skrzydeł. "
@@ -41,6 +41,9 @@ def strona():
         ("Drukarka nie drukuje przy samym brzegu",
          ["To normalne: domowe drukarki zostawiają 3–6 mm białego paska. Napisy, oczy i znaki stoją co najmniej 5 mm od brzegu "
           "i 2,5 mm od zgięć, więc nic ważnego nie zostanie ucięte. Na końcach skrzydeł zostanie najwyżej cienki biały brzeg."]),
+        ("Da się wydrukować same linie, bez malowania?",
+         ["Tak. Zaznacz „Bez malowania” przy kolorach. Drukują się tylko linie zgięć z numerami kroków, więc tuszu prawie nie ubywa. "
+          "Biały samolot możesz pomalować kredkami albo flamastrami – linie podpowiedzą, gdzie po złożeniu będzie skrzydło, a gdzie kadłub."]),
         ("Gdzie jest napis domowydrukarz.pl?",
          ["Na arkuszu, w miejscu, które po złożeniu chowa się w środku modelu. Na gotowym samolocie go nie widać."]),
         ("Czy coś zostaje wysłane?",
@@ -77,6 +80,7 @@ def strona():
 .skladanie canvas{grid-column:1/-1;width:100%;height:auto;aspect-ratio:1;object-fit:contain;background:#fff;border-radius:6px}
 .skladanie .nr{color:var(--sygnal);font-weight:700;font-size:15px}
 .skladanie p{margin:0;font-size:15px;line-height:1.45}
+.kolory.wylaczone{opacity:.35}
 .zaznacz{display:flex;gap:10px;align-items:flex-start;margin-top:16px;font-size:15px;max-width:62ch}
 .zaznacz input{width:20px;height:20px;margin-top:2px;accent-color:var(--sygnal)}
 @media (max-width:560px){#modele{grid-template-columns:repeat(2,minmax(0,1fr))}.lupa{flex-direction:column;align-items:flex-start}}
@@ -113,8 +117,8 @@ def strona():
   <h1>Papierowe samoloty{dd("reg.svg")}</h1>
   <p class="lead">Odskocznia od poważnych wydruków. Sześć samolotów z jednej kartki A4: linie zgięć są wtopione w malowanie, a wzór po złożeniu trafia dokładnie na skrzydła i kadłub.</p>
   <ol class="kroki">
-   <li><span class="nr mono">1</span><strong>Wybierz model</strong><span class="op">Od klasycznej strzały po ważkę z dwiema parami skrzydeł. Podgląd pokazuje gotowy samolot.</span></li>
-   <li><span class="nr mono">2</span><strong>Wybierz kolor</strong><span class="op">Wzór zostaje, kolor zmieniasz. Pola są z drobnych kropek, więc drukarka atramentowa nie pofaluje kartki.</span></li>
+   <li><span class="nr mono">1</span><strong>Wybierz model</strong><span class="op">Od klasycznej strzały po szybowiec i samolot patrolowy. Bez nożyczek i kleju. Podgląd pokazuje gotowy samolot.</span></li>
+   <li><span class="nr mono">2</span><strong>Wybierz kolor</strong><span class="op">Wzór zostaje, kolor zmieniasz – albo drukujesz same linie. Pola są z drobnych kropek, więc drukarka atramentowa nie pofaluje kartki.</span></li>
    <li><span class="nr mono">3</span><strong>Drukuj i składaj</strong><span class="op">PDF w skali 100%, jedna strona, jednostronnie. Kroki składania są niżej.</span></li>
   </ol>
  </div>
@@ -135,6 +139,7 @@ def strona():
     </div>
     <div class="opts waskie" style="margin-top:20px">
      <div class="fld"><span class="et">Kolor główny</span><div class="kolory" id="kolory" role="group" aria-label="Kolor główny"></div><span class="pom" id="kolorNazwa"></span></div>
+     <label class="zaznacz" style="margin-top:4px"><input type="checkbox" id="bezMal"> <span>Bez malowania – drukuj same linie zgięć. Najmniej tuszu, a samolot pomalujesz sam kredkami.</span></label>
     </div>
     <div class="druk">
      <span class="mono">Jak rzucać</span>

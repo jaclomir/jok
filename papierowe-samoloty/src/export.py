@@ -150,9 +150,16 @@ class Rec:
 
 
 # ----------------------------------------------------------------------
-def sheet_ops(M):
+def sheet_ops(M, art=True, lines=True):
+    """Operacje arkusza: art=True – malowanie, lines=True – linie zgięć, numery i znak wodny."""
     rec = Rec(M.W, M.H)
-    paint_sheet(rec, M, M.pieces)
+    if art:
+        saved = M.watermark
+        M.watermark = lambda ctx: None
+        paint_sheet(rec, M, M.pieces, lines=False)
+        M.watermark = saved
+    else:
+        paint_sheet(rec, M, M.pieces, lines=lines, art=False)
     paint.PAPER_DEV[0] = None
     # sklej sąsiednie Q q (nie zmieniają stanu tylko przy pustych parach – zostawiamy jak jest)
     return rec.ops
@@ -266,7 +273,8 @@ def model_data(M):
         "slug": M.slug, "nazwa": M.name, "opis": M.tagline, "styl": M.style, "lot": M.fly,
         "trudnosc": M.difficulty, "W": M.W, "H": M.H, "orientacja": "pozioma" if M.W > M.H else "pionowa",
         "kolory": M.inks, "kropka": paint.DOT_PITCH,
-        "ops": sheet_ops(M),
+        "ops": sheet_ops(M, art=True),
+        "linie": sheet_ops(M, art=False),
         "widoki": {
             "gora": scene_3d(M, -140, 32, (720, 440)),
             "spod": scene_3d(M, -60, -30, (720, 440)),

@@ -8,15 +8,17 @@ trafił dokładnie na skrzydła, kadłub i winglety.
 
 | # | Model | Trudność | Kartka | Malowanie | Lot |
 |---|-------|----------|--------|-----------|-----|
-| 1 | **Grot** | ●○○ | pionowo | realistyczny – jasnoszary myśliwiec z szachownicą | szybka klasyczna strzała |
-| 2 | **Albatros** | ●●○ | poziomo | realistyczny – biały szybowiec z czerwonymi paskami | wolny, długi lot w domu |
-| 3 | **Jerzyk** | ●●○ | poziomo | realistyczny – liniowiec fikcyjnych linii JERZYK | ciężki nos, na dwór |
-| 4 | **Ważka** | ●●○ | poziomo | realistyczny – ważka z żyłkowaniem skrzydeł | dwie pary skrzydeł, jedno cięcie nożyczkami |
-| 5 | **Kaczka** | ●●● | pionowo | kreskówkowy – żółte kaczątko | przednie skrzydełka, stabilny |
-| 6 | **Mops** | ●●● | pionowo | kreskówkowy – mops | zablokowany tępy nos, do pokoju |
+| 1 | **Grot** | ●○○ | pionowo | myśliwiec w kamuflażu z szachownicą | szybka klasyczna strzała |
+| 2 | **Iskra** | ●○○ | poziomo | biało-kolorowy samolot szkolno-akrobacyjny | szeroka delta, kilka zgięć |
+| 3 | **Albatros** | ●●○ | poziomo | biały szybowiec z kolorowymi paskami | wolny, długi lot w domu |
+| 4 | **Jerzyk** | ●●○ | poziomo | liniowiec fikcyjnych linii JERZYK | ciężki nos, na dwór |
+| 5 | **Kaczka** | ●●● | pionowo | myśliwiec w układzie kaczki, dwubarwny kamuflaż | przednie skrzydełka, stabilny |
+| 6 | **Bryza** | ●●● | pionowo | dwusilnikowy samolot patrolowy | zablokowany tępy nos, do pokoju |
+
+Wszystkie malowania są lotnicze. Żaden model nie wymaga nożyczek ani kleju.
 
 Składanie to tradycyjne, przekazywane od pokoleń bazy (strzałka, „bomba wodna”,
-nos zwijany, kaczka z przednimi lotkami, „ważka” z wycięciem). Geometria jest narysowana od nowa pod A4.
+nos zwijany, delta, kaczka z przednimi lotkami). Geometria jest narysowana od nowa pod A4.
 Nie kopiujemy szablonów z książek. Nazwy modeli są nasze.
 
 ## Strona narzędzia
@@ -27,6 +29,7 @@ Wszystko jest w jednym pliku: pdf-lib, dane modeli i skrypt, więc działa bez i
 
 - wybór modelu z miniaturami, podgląd złożonego samolotu (z góry, od spodu, arkusz) i lupa z kropkami w skali 1:1,
 - **kolor główny do wyboru**: 10 próbek albo dowolny kolor. Wzór zostaje, zmienia się kolor (np. różowa strzała),
+- **bez malowania**: same linie zgięć i numery kroków (`?malowanie=0`), do kolorowania kredkami,
 - PDF składany w przeglądarce (pdf-lib), opcjonalnie z instrukcją na drugiej stronie,
 - kroki składania rysowane na żywo w wybranym kolorze,
 - model i kolor są w adresie strony (`?model=grot&kolor=e2508c`).
@@ -47,6 +50,7 @@ W katalogu `wyniki/<model>/`:
 
 - `<model>.pdf` – strona 1 to arkusz do druku (wektor, kolor naturalny), strona 2 to instrukcja krok po kroku,
 - `<model>-tylko-wydruk.pdf` – sam arkusz,
+- `<model>-same-linie.pdf` – arkusz bez malowania, same linie zgięć,
 - `<model>-podglad.png`, `<model>-spod.png` – podgląd złożonego modelu (z góry i od spodu),
 - `<model>-arkusz.png` – podgląd arkusza.
 
@@ -131,9 +135,9 @@ miejsce, w którym detal nie zostanie przecięty zgięciem ani marginesem.
 Symulacja to nie składanie. Przed publikacją każdy model trzeba wydrukować i złożyć.
 Najbardziej niepewne są:
 
-- **Mops**: krok z klapkami po „bombie wodnej”. W symulacji klapki wchodzą pod nos. Na papierze
+- **Bryza**: krok z klapkami po „bombie wodnej”. W symulacji klapki wchodzą pod nos. Na papierze
   może trzeba przesunąć linię o kilka mm.
-- **Ważka**: 7 zwinięć krawędzi natarcia na kartce 80 g. Jeśli nos jest za ciężki, wystarczy 5–6.
+- **Iskra**: zagięcie czubka nosa (linia 5) jest krótkie – sprawdzić, czy wystarcza do wyważenia.
 - **Kaczka**: kąt odgięcia przednich skrzydełek (krok 4–5).
 - **Jerzyk**: trzykrotnie zwijany nos jest gruby. Jeśli linie 4–5 nie trafiają, wystarczy
   zwinąć dwa razy.
