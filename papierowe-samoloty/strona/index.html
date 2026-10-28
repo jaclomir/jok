@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Papierowe samoloty – domowydrukarz.pl</title>
+<style>
+:root { --bg:#f6f7f9; --card:#fff; --ink:#17202e; --muted:#5b6575; --accent:#1a2a4d; --line:#e2e6ec; }
+@media (prefers-color-scheme: dark) { :root { --bg:#11151c; --card:#1a202a; --ink:#e8ecf2; --muted:#9aa5b5; --accent:#8fb0ff; --line:#2a3240; } }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, sans-serif; }
+main { max-width:1100px; margin:0 auto; padding:32px 16px 64px; }
+h1 { font-size:clamp(28px,5vw,42px); margin:0 0 8px; }
+.lead { color:var(--muted); max-width:70ch; margin:0 0 24px; }
+.tips { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px 20px; margin-bottom:28px; }
+.tips li { margin:4px 0; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:20px; }
+.card { background:var(--card); border:1px solid var(--line); border-radius:14px; overflow:hidden; display:flex; flex-direction:column; }
+.card img { width:100%; aspect-ratio:5/3; object-fit:contain; background:#fff; }
+.body { padding:14px 18px 18px; display:flex; flex-direction:column; gap:6px; flex:1; }
+h3 { margin:0; font-size:22px; display:flex; justify-content:space-between; align-items:baseline; }
+.lvl { font-size:14px; color:var(--accent); letter-spacing:2px; }
+.body p { margin:0; }
+.meta { color:var(--muted); font-size:14px; }
+.btns { display:flex; gap:8px; margin-top:auto; padding-top:10px; flex-wrap:wrap; }
+.btn { background:var(--accent); color:var(--card); text-decoration:none; padding:8px 14px; border-radius:8px; font-weight:600; font-size:15px; }
+.btn.ghost { background:transparent; color:var(--accent); border:1px solid var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Papierowe samoloty</h1>
+  <p class="lead">Odskocznia od poważnych wydruków: sześć samolotów z jednej kartki A4. Linie zgięć są wtopione w malowanie, a wzór po złożeniu trafia dokładnie na skrzydła i kadłub.</p>
+  <div class="tips">
+    <strong>Jak drukować</strong>
+    <ul>
+      <li>Tylko strona 1, jednostronnie, A4 80 g.</li>
+      <li>Skala 100% („rozmiar rzeczywisty”), bez dopasowania do strony.</li>
+      <li>Strona 2 PDF-a to instrukcja: zostaw ją na ekranie albo wydrukuj osobno.</li>
+    </ul>
+    <a class="btn" href="../wyniki/wszystkie-arkusze.pdf" download>Wszystkie arkusze w jednym PDF</a>
+  </div>
+  <section class="grid">
+    <article class="card">
+      <img src="../wyniki/grot/grot-podglad.png" alt="Złożony model Grot" loading="lazy">
+      <div class="body">
+        <h3>Grot <span class="lvl" title="trudność">●○○</span></h3>
+        <p>Klasyczna strzała – szybka i prosta</p>
+        <p class="meta">realistyczny: myśliwiec w szarym kamuflażu · kartka pionowa · 8 kroków</p>
+        <div class="btns">
+          <a class="btn" href="../wyniki/grot/grot.pdf" download>Pobierz PDF</a>
+          <a class="btn ghost" href="../wyniki/grot/grot-arkusz.png">Zobacz arkusz</a>
+        </div>
+      </div>
+    </article>
+    <article class="card">
+      <img src="../wyniki/albatros/albatros-podglad.png" alt="Złożony model Albatros" loading="lazy">
+      <div class="body">
+        <h3>Albatros <span class="lvl" title="trudność">●●○</span></h3>
+        <p>Szeroki szybowiec – długi, spokojny lot w domu</p>
+        <p class="meta">realistyczny: biały szybowiec wyczynowy z czerwonymi końcówkami · kartka pozioma · 10 kroków</p>
+        <div class="btns">
+          <a class="btn" href="../wyniki/albatros/albatros.pdf" download>Pobierz PDF</a>
+          <a class="btn ghost" href="../wyniki/albatros/albatros-arkusz.png">Zobacz arkusz</a>
+        </div>
+      </div>
+    </article>
+    <article class="card">
+      <img src="../wyniki/jerzyk/jerzyk-podglad.png" alt="Złożony model Jerzyk" loading="lazy">
+      <div class="body">
+        <h3>Jerzyk <span class="lvl" title="trudność">●●○</span></h3>
+        <p>Szybowiec z ciężkim nosem – do latania na dworze</p>
+        <p class="meta">realistyczny: liniowiec fikcyjnych linii JERZYK · kartka pozioma · 10 kroków</p>
+        <div class="btns">
+          <a class="btn" href="../wyniki/jerzyk/jerzyk.pdf" download>Pobierz PDF</a>
+          <a class="btn ghost" href="../wyniki/jerzyk/jerzyk-arkusz.png">Zobacz arkusz</a>
+        </div>
+      </div>
+    </article>
+    <article class="card">
+      <img src="../wyniki/kaczka/kaczka-podglad.png" alt="Złożony model Kaczka" loading="lazy">
+      <div class="body">
+        <h3>Kaczka <span class="lvl" title="trudność">●●●</span></h3>
+        <p>Kaczka z przednimi skrzydełkami – stabilna i zabawna</p>
+        <p class="meta">kreskówkowy: żółte kaczątko · kartka pionowa · 10 kroków</p>
+        <div class="btns">
+          <a class="btn" href="../wyniki/kaczka/kaczka.pdf" download>Pobierz PDF</a>
+          <a class="btn ghost" href="../wyniki/kaczka/kaczka-arkusz.png">Zobacz arkusz</a>
+        </div>
+      </div>
+    </article>
+    <article class="card">
+      <img src="../wyniki/mops/mops-podglad.png" alt="Złożony model Mops" loading="lazy">
+      <div class="body">
+        <h3>Mops <span class="lvl" title="trudność">●●●</span></h3>
+        <p>Tępy nos z zamkiem – stabilny lot w domu</p>
+        <p class="meta">kreskówkowy: mops z czarną mordką · kartka pionowa · 10 kroków</p>
+        <div class="btns">
+          <a class="btn" href="../wyniki/mops/mops.pdf" download>Pobierz PDF</a>
+          <a class="btn ghost" href="../wyniki/mops/mops-arkusz.png">Zobacz arkusz</a>
+        </div>
+      </div>
+    </article>
+    <article class="card">
+      <img src="../wyniki/trzmiel/trzmiel-podglad.png" alt="Złożony model Trzmiel" loading="lazy">
+      <div class="body">
+        <h3>Trzmiel <span class="lvl" title="trudność">●●●</span></h3>
+        <p>Krępy trapez z wielkimi wingletami</p>
+        <p class="meta">kreskówkowy: puchaty trzmiel · kartka pionowa · 10 kroków</p>
+        <div class="btns">
+          <a class="btn" href="../wyniki/trzmiel/trzmiel.pdf" download>Pobierz PDF</a>
+          <a class="btn ghost" href="../wyniki/trzmiel/trzmiel-arkusz.png">Zobacz arkusz</a>
+        </div>
+      </div>
+    </article>
+  </section>
+</main>
+</body>
+</html>

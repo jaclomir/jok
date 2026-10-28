@@ -1,0 +1,62 @@
+[
+  {
+    "slug": "grot",
+    "nazwa": "Grot",
+    "opis": "Klasyczna strzała – szybka i prosta",
+    "styl": "realistyczny: myśliwiec w szarym kamuflażu",
+    "trudnosc": 1,
+    "orientacja": "pionowa",
+    "widoczny_nadruk_proc": 65,
+    "kroki": 8
+  },
+  {
+    "slug": "albatros",
+    "nazwa": "Albatros",
+    "opis": "Szeroki szybowiec – długi, spokojny lot w domu",
+    "styl": "realistyczny: biały szybowiec wyczynowy z czerwonymi końcówkami",
+    "trudnosc": 2,
+    "orientacja": "pozioma",
+    "widoczny_nadruk_proc": 72,
+    "kroki": 10
+  },
+  {
+    "slug": "jerzyk",
+    "nazwa": "Jerzyk",
+    "opis": "Szybowiec z ciężkim nosem – do latania na dworze",
+    "styl": "realistyczny: liniowiec fikcyjnych linii JERZYK",
+    "trudnosc": 2,
+    "orientacja": "pozioma",
+    "widoczny_nadruk_proc": 75,
+    "kroki": 10
+  },
+  {
+    "slug": "kaczka",
+    "nazwa": "Kaczka",
+    "opis": "Kaczka z przednimi skrzydełkami – stabilna i zabawna",
+    "styl": "kreskówkowy: żółte kaczątko",
+    "trudnosc": 3,
+    "orientacja": "pionowa",
+    "widoczny_nadruk_proc": 70,
+    "kroki": 10
+  },
+  {
+    "slug": "mops",
+    "nazwa": "Mops",
+    "opis": "Tępy nos z zamkiem – stabilny lot w domu",
+    "styl": "kreskówkowy: mops z czarną mordką",
+    "trudnosc": 3,
+    "orientacja": "pionowa",
+    "widoczny_nadruk_proc": 52,
+    "kroki": 10
+  },
+  {
+    "slug": "trzmiel",
+    "nazwa": "Trzmiel",
+    "opis": "Krępy trapez z wielkimi wingletami",
+    "styl": "kreskówkowy: puchaty trzmiel",
+    "trudnosc": 3,
+    "orientacja": "pionowa",
+    "widoczny_nadruk_proc": 54,
+    "kroki": 10
+  }
+]
