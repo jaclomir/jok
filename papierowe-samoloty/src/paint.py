@@ -25,6 +25,73 @@ def feat(ctx, name, x0, y0, x1, y1):
 from base import text  # noqa: E402,F401  (re-eksport)
 
 
+PAPER_DEV = [None]  # cairo.Matrix kartka(mm) -> urządzenie, ustawiane przez render.paper_ctx
+DOT_PITCH = 1.0  # mm, odstęp kropek w rastrze
+
+
+def mix(rgb, k):
+    """Przyciemnia kolor: k=0 bez zmian, k=1 czerń."""
+    return tuple(c * (1 - k) for c in rgb)
+
+
+def to_hex(rgb):
+    return "#" + "".join("%02x" % max(0, min(255, round(c * 255))) for c in rgb[:3])
+
+
+class Ink(tuple):
+    """Kolor przypisany do roli (np. 'main'), który użytkownik może zmienić. k – przyciemnienie."""
+
+    def __new__(cls, rgb, role=None, k=0.0, alpha=None):
+        t = tuple(mix(rgb, k)) + ((alpha,) if alpha is not None else ())
+        o = super().__new__(cls, t)
+        o.role, o.k = role, k
+        return o
+
+    def spec(self):
+        if self.role:
+            return {"r": self.role, "k": round(self.k, 3)}
+        return {"h": to_hex(self)}
+
+
+class Dots:
+    """Raster kolorowych kropek: z daleka wygląda jak jasny odcień koloru, a zużywa mało tuszu."""
+
+    def __init__(self, ink, cov):
+        self.ink = ink if isinstance(ink, Ink) else Ink(tuple(ink[:3]))
+        self.cov = cov
+
+    def spec(self):
+        s = dict(self.ink.spec())
+        s["d"] = round(self.cov, 3)
+        return s
+
+    def radius(self, pitch=None):
+        p = pitch or DOT_PITCH
+        # siatka heksagonalna: na komórkę p * p*sqrt(3)/2 przypada jedna kropka
+        return math.sqrt(self.cov * p * p * math.sqrt(3) / 2 / math.pi)
+
+    def pattern(self, ctx):
+        p = DOT_PITCH
+        h = p * math.sqrt(3) / 2
+        r = self.radius()
+        tile = cairo.RecordingSurface(cairo.CONTENT_COLOR_ALPHA, (0, 0, p, 2 * h))
+        t = cairo.Context(tile)
+        t.set_source_rgb(*self.ink[:3])
+        for x, y in ((p / 2, h / 2), (0, 1.5 * h), (p, 1.5 * h)):
+            t.arc(x, y, r, 0, 2 * math.pi)
+            t.close_path()
+        t.fill()
+        pat = cairo.SurfacePattern(tile)
+        pat.set_extend(cairo.EXTEND_REPEAT)
+        m = ctx.get_matrix()
+        if PAPER_DEV[0] is not None:
+            inv = cairo.Matrix(*PAPER_DEV[0].as_tuple())
+            inv.invert()
+            m = m.multiply(inv)
+        pat.set_matrix(m)
+        return pat
+
+
 def hx(h, a=None):
     h = h.lstrip("#")
     c = tuple(int(h[i:i + 2], 16) / 255 for i in (0, 2, 4))
@@ -32,11 +99,17 @@ def hx(h, a=None):
 
 
 def fill(ctx, col):
-    ctx.set_source_rgba(*col) if len(col) == 4 else ctx.set_source_rgb(*col)
+    setc(ctx, col)
     ctx.paint()
 
 
 def setc(ctx, col):
+    if hasattr(ctx, "set_source_spec"):
+        ctx.set_source_spec(col)
+        return
+    if isinstance(col, Dots):
+        ctx.set_source(col.pattern(ctx))
+        return
     ctx.set_source_rgba(*col) if len(col) == 4 else ctx.set_source_rgb(*col)
 
 

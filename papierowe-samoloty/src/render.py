@@ -35,9 +35,11 @@ def cairo_matrix(M):
 
 
 def paper_ctx(surface, W, H, scale):
+    import paint
     ctx = cairo.Context(surface)
     ctx.scale(scale, -scale)
     ctx.translate(0, -H)
+    paint.PAPER_DEV[0] = ctx.get_matrix()
     return ctx
 
 

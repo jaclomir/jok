@@ -1,74 +1,217 @@
-"""Generuje strona/index.html – sekcję galerii na domowydrukarz.pl z danych w wyniki/modele.json."""
+"""Składa strona/index.html – narzędzie „Papierowe samoloty” w stylu domowydrukarz.pl.
+
+Wszystko jest w jednym pliku (style, pdf-lib, dane modeli, skrypt), więc strona działa bez internetu,
+tak jak pozostałe narzędzia Domowego drukarza. Style i elementy wspólne są skopiowane z domowydrukarz.pl
+(katalog web/dd/).
+"""
 import html
 import json
 import os
 
-ROOT = os.path.join(os.path.dirname(__file__), "..")
-ms = json.load(open(os.path.join(ROOT, "wyniki", "modele.json")))
-cards = []
-for m in ms:
-    s = m["slug"]
-    dots = "●" * m["trudnosc"] + "○" * (3 - m["trudnosc"])
-    cards.append(f'''    <article class="card">
-      <img src="../wyniki/{s}/{s}-podglad.png" alt="Złożony model {html.escape(m['nazwa'])}" loading="lazy">
-      <div class="body">
-        <h3>{html.escape(m['nazwa'])} <span class="lvl" title="trudność">{dots}</span></h3>
-        <p>{html.escape(m['opis'])}</p>
-        <p class="meta">{html.escape(m['styl'])} · kartka {m['orientacja']} · {m['kroki']} kroków</p>
-        <div class="btns">
-          <a class="btn" href="../wyniki/{s}/{s}.pdf" download>Pobierz PDF</a>
-          <a class="btn ghost" href="../wyniki/{s}/{s}-arkusz.png">Zobacz arkusz</a>
-        </div>
-      </div>
-    </article>''')
-page = f'''<!doctype html>
+HERE = os.path.dirname(__file__)
+ROOT = os.path.join(HERE, "..")
+WEB = os.path.join(HERE, "web")
+KOLEJNOSC = ["grot", "albatros", "jerzyk", "wazka", "kaczka", "mops"]
+
+
+def czytaj(*p):
+    with open(os.path.join(*p), encoding="utf-8") as f:
+        return f.read()
+
+
+def strona():
+    dane = [json.loads(czytaj(ROOT, "wyniki", "dane", f"{s}.json")) for s in KOLEJNOSC]
+    dd = lambda n: czytaj(WEB, "dd", n)  # noqa: E731
+    js_dane = "window.SAMOLOTY_DANE=" + json.dumps(dane, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/") + ";"
+    pytania = [
+        ("Po co kropki zamiast jednolitego koloru?",
+         ["Kolorowe pola są wydrukowane drobnymi kropkami co milimetr. Z odległości ręki oko zlewa je w jeden, jaśniejszy odcień, "
+          "a drukarka kładzie kilka razy mniej tuszu niż przy pełnym kolorze.",
+          "Mniej tuszu to kartka, która się nie wygina. Pełna apla z drukarki atramentowej potrafi pofalować zwykły papier 80 g, "
+          "a samolot z pofalowanej kartki lata krzywo."]),
+        ("Czy mogę wybrać dowolny kolor?",
+         ["Tak. Wzór zostaje ten sam, a zmienia się kolor główny: kamuflaż Grota, paski Albatrosa, upierzenie Kaczki. "
+          "Wybierz jedną z próbek albo własny kolor w kółku na końcu listy. Detale, takie jak oczy czy szachownica, mają stałe kolory."]),
+        ("Czemu część samolotu jest biała?",
+         ["Drukujemy jednostronnie, a po złożeniu część kartki pokazuje stronę bez nadruku – zwykle spód kadłuba i kawałek spodu skrzydeł. "
+          "Malowanie jest pod to ułożone: wierzch skrzydeł jest zawsze zadrukowany, a biały spód to część wzoru."]),
+        ("Linie nie trafiają w krawędzie kartki",
+         ["Prawie zawsze to skalowanie w oknie drukowania. Wybierz <b>skalę 100%</b> albo „rozmiar rzeczywisty” i wyłącz "
+          "„dopasuj do strony”. Linie zgięć są liczone od krawędzi kartki, więc nawet 3% różnicy przesuwa je o kilka milimetrów."]),
+        ("Drukarka nie drukuje przy samym brzegu",
+         ["To normalne: domowe drukarki zostawiają 3–6 mm białego paska. Napisy, oczy i znaki stoją co najmniej 5 mm od brzegu "
+          "i 2,5 mm od zgięć, więc nic ważnego nie zostanie ucięte. Na końcach skrzydeł zostanie najwyżej cienki biały brzeg."]),
+        ("Gdzie jest napis domowydrukarz.pl?",
+         ["Na arkuszu, w miejscu, które po złożeniu chowa się w środku modelu. Na gotowym samolocie go nie widać."]),
+        ("Czy coś zostaje wysłane?",
+         ["Nie. PDF powstaje w Twojej przeglądarce, nic nie idzie na serwer. Wczytaj stronę, odłącz internet i dalej działa.",
+          "Wybrany model i kolor są w adresie strony, więc wyślesz komuś link do dokładnie tego samolotu."]),
+    ]
+    faq = "\n".join(
+        f'''   <details class="pyt">
+    <summary><h3>{html.escape(q)}</h3></summary>
+    <div class="odp">
+{"".join(f"     <p>{p}</p>" + chr(10) for p in ps)}    </div>
+   </details>''' for q, ps in pytania)
+    wlasne_css = '''
+/* papierowe samoloty – własny kolor narzędzia (na stronie głównej: .k-samoloty{--k:#5F7A14;--kn:#A9C653}) */
+:root{--akcent:#5F7A14;--akcent-noc:#A9C653}
+#modele{grid-template-columns:repeat(3,minmax(0,1fr))}
+#modele canvas{display:block;width:100%;height:auto;border-radius:6px;border:1px solid var(--linia);background:#fff}
+#modele small{display:block}
+.przel{display:inline-flex;flex-wrap:wrap;border:1.5px solid var(--obrys);border-radius:999px;overflow:hidden}
+.przel button{font:inherit;font-size:14px;font-weight:600;padding:6px 14px;background:transparent;color:var(--tusz);border:0;cursor:pointer}
+.przel button+button{border-left:1.5px solid var(--obrys)}
+.przel button[aria-pressed=true]{background:var(--sygnal);color:var(--na-sygnale)}
+.podglad canvas{display:block;width:100%;height:auto;border:1px solid var(--obrys);background:#fff;border-radius:var(--r-maly)}
+.podglad .pod{margin:8px 0 0;color:var(--szary);font-size:14.5px}
+.lupa{display:flex;gap:12px;align-items:center;margin-top:14px}
+.lupa canvas{width:220px;height:120px;border:1px solid var(--obrys);border-radius:var(--r-maly);background:#fff;flex:0 0 auto}
+.lupa span{color:var(--szary);font-size:14px;line-height:1.45}
+.karta-modelu{display:flex;flex-direction:column;gap:6px}
+.karta-modelu h3{margin:0;font-family:var(--black);font-weight:800;font-size:26px;line-height:1.1}
+.karta-modelu p{margin:0}
+.karta-modelu .szary{color:var(--szary);font-size:15px}
+.skladanie{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.skladanie li{background:var(--karta);border:1.5px solid var(--linia);border-radius:var(--r-maly);padding:10px 12px 12px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 10px;align-content:start}
+.skladanie canvas{grid-column:1/-1;width:100%;height:auto;aspect-ratio:1;object-fit:contain;background:#fff;border-radius:6px}
+.skladanie .nr{color:var(--sygnal);font-weight:700;font-size:15px}
+.skladanie p{margin:0;font-size:15px;line-height:1.45}
+.zaznacz{display:flex;gap:10px;align-items:flex-start;margin-top:16px;font-size:15px;max-width:62ch}
+.zaznacz input{width:20px;height:20px;margin-top:2px;accent-color:var(--sygnal)}
+@media (max-width:560px){#modele{grid-template-columns:repeat(2,minmax(0,1fr))}.lupa{flex-direction:column;align-items:flex-start}}
+'''
+    return f'''<!doctype html>
 <html lang="pl">
 <head>
 <meta charset="utf-8">
+<script>{dd("motyw-start.js")}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Papierowe samoloty – domowydrukarz.pl</title>
-<style>
-:root {{ --bg:#f6f7f9; --card:#fff; --ink:#17202e; --muted:#5b6575; --accent:#1a2a4d; --line:#e2e6ec; }}
-@media (prefers-color-scheme: dark) {{ :root {{ --bg:#11151c; --card:#1a202a; --ink:#e8ecf2; --muted:#9aa5b5; --accent:#8fb0ff; --line:#2a3240; }} }}
-* {{ box-sizing:border-box; }}
-body {{ margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, sans-serif; }}
-main {{ max-width:1100px; margin:0 auto; padding:32px 16px 64px; }}
-h1 {{ font-size:clamp(28px,5vw,42px); margin:0 0 8px; }}
-.lead {{ color:var(--muted); max-width:70ch; margin:0 0 24px; }}
-.tips {{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px 20px; margin-bottom:28px; }}
-.tips li {{ margin:4px 0; }}
-.grid {{ display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:20px; }}
-.card {{ background:var(--card); border:1px solid var(--line); border-radius:14px; overflow:hidden; display:flex; flex-direction:column; }}
-.card img {{ width:100%; aspect-ratio:5/3; object-fit:contain; background:#fff; }}
-.body {{ padding:14px 18px 18px; display:flex; flex-direction:column; gap:6px; flex:1; }}
-h3 {{ margin:0; font-size:22px; display:flex; justify-content:space-between; align-items:baseline; }}
-.lvl {{ font-size:14px; color:var(--accent); letter-spacing:2px; }}
-.body p {{ margin:0; }}
-.meta {{ color:var(--muted); font-size:14px; }}
-.btns {{ display:flex; gap:8px; margin-top:auto; padding-top:10px; flex-wrap:wrap; }}
-.btn {{ background:var(--accent); color:var(--card); text-decoration:none; padding:8px 14px; border-radius:8px; font-weight:600; font-size:15px; }}
-.btn.ghost {{ background:transparent; color:var(--accent); border:1px solid var(--accent); }}
-</style>
+<title>Papierowe samoloty do druku – 6 modeli z malowaniem | Papierowe samoloty</title>
+<meta name="description" content="Papierowe samoloty do wydrukowania na zwykłej kartce A4: linie zgięć i malowanie, które po złożeniu trafia na skrzydła i kadłub. Sześć modeli, dowolny kolor, PDF w przeglądarce, za darmo.">
+<link rel="canonical" href="https://domowydrukarz.pl/samoloty/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://domowydrukarz.pl/samoloty/">
+<meta property="og:locale" content="pl_PL">
+<meta property="og:title" content="Papierowe samoloty">
+<meta property="og:description" content="Sześć papierowych samolotów z jednej kartki A4. Malowanie z kolorowych kropek, dowolny kolor, PDF w przeglądarce.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cstyle%3E.k%7Bstroke:%23151412%7D.p%7Bfill:%23151412%7D@media (prefers-color-scheme:dark)%7B.k%7Bstroke:%23EEEAE3%7D.p%7Bfill:%23EEEAE3%7D%7D%3C/style%3E%3Cmask id='w'%3E%3Crect width='64' height='64' fill='%23fff'/%3E%3Cpath d='M32 15v34M15 32h34' stroke='%23000' stroke-width='4.5'/%3E%3C/mask%3E%3Cpath class='k' d='M32 0v64M0 32h64' stroke-width='5'/%3E%3Ccircle class='k' cx='32' cy='32' r='22' fill='none' stroke-width='5'/%3E%3Ccircle class='p' cx='32' cy='32' r='16' mask='url(%23w)'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>{dd("styl.css")}{wlasne_css}</style>
 </head>
-<body>
+<body data-dd="samoloty">
+{dd("sprite.svg")}
+
+<div class="ticket mono">
+ <div class="wrap"><a class="logo" href="https://domowydrukarz.pl/">{dd("logo.svg")}Domowy drukarz</a><span class="okruszek"><a href="https://domowydrukarz.pl/">Wszystkie narzędzia</a> › <b>Papierowe samoloty</b></span><span><span class="dot" aria-hidden="true"></span>Działa bez internetu</span><button type="button" class="motyw mono" id="motyw" aria-label="Przełącz jasny i ciemny wygląd"><span aria-hidden="true">◐</span> <span id="motywNapis">Ciemny</span></button></div>
+</div>
+
+<header class="hero">
+ <div class="wrap">
+  <h1>Papierowe samoloty{dd("reg.svg")}</h1>
+  <p class="lead">Odskocznia od poważnych wydruków. Sześć samolotów z jednej kartki A4: linie zgięć są wtopione w malowanie, a wzór po złożeniu trafia dokładnie na skrzydła i kadłub.</p>
+  <ol class="kroki">
+   <li><span class="nr mono">1</span><strong>Wybierz model</strong><span class="op">Od klasycznej strzały po ważkę z dwiema parami skrzydeł. Podgląd pokazuje gotowy samolot.</span></li>
+   <li><span class="nr mono">2</span><strong>Wybierz kolor</strong><span class="op">Wzór zostaje, kolor zmieniasz. Pola są z drobnych kropek, więc drukarka atramentowa nie pofaluje kartki.</span></li>
+   <li><span class="nr mono">3</span><strong>Drukuj i składaj</strong><span class="op">PDF w skali 100%, jedna strona, jednostronnie. Kroki składania są niżej.</span></li>
+  </ol>
+ </div>
+</header>
+
 <main>
-  <h1>Papierowe samoloty</h1>
-  <p class="lead">Odskocznia od poważnych wydruków: sześć samolotów z jednej kartki A4. Linie zgięć są wtopione w malowanie, a wzór po złożeniu trafia dokładnie na skrzydła i kadłub. Malowania są lekkie – zwykła drukarka atramentowa nie pofaluje kartki.</p>
-  <div class="tips">
-    <strong>Jak drukować</strong>
-    <ul>
-      <li>Tylko strona 1, jednostronnie, A4 80 g.</li>
-      <li>Skala 100% („rozmiar rzeczywisty”), bez dopasowania do strony.</li>
-      <li>Strona 2 PDF-a to instrukcja: zostaw ją na ekranie albo wydrukuj osobno.</li>
-    </ul>
-    <a class="btn" href="../wyniki/wszystkie-arkusze.pdf" download>Wszystkie arkusze w jednym PDF</a>
+<section aria-labelledby="h-model">
+ <div class="wrap">
+  <div class="nag"><span class="nr mono">1</span><h2 id="h-model">Model i kolor</h2></div>
+  <div class="typy" id="modele" role="group" aria-label="Model samolotu"></div>
+
+  <div class="rozklad" style="margin-top:28px">
+   <div>
+    <div class="karta-modelu">
+     <h3 id="mNazwa"></h3>
+     <p id="mOpis"></p>
+     <p class="szary"><span id="mStyl"></span> · <span id="mTrud"></span></p>
+    </div>
+    <div class="opts waskie" style="margin-top:20px">
+     <div class="fld"><span class="et">Kolor główny</span><div class="kolory" id="kolory" role="group" aria-label="Kolor główny"></div><span class="pom" id="kolorNazwa"></span></div>
+    </div>
+    <div class="druk">
+     <span class="mono">Jak rzucać</span>
+     <span id="mLot"></span>
+    </div>
+   </div>
+   <figure class="podglad">
+    <figcaption>Podgląd</figcaption>
+    <div class="przel" id="widoki" role="group" aria-label="Widok">
+     <button type="button" data-w="gora" aria-pressed="true">Złożony</button><button type="button" data-w="spod" aria-pressed="false">Od spodu</button><button type="button" data-w="arkusz" aria-pressed="false">Arkusz</button>
+    </div>
+    <canvas id="podglad" style="margin-top:10px" role="img" aria-label="Podgląd samolotu"></canvas>
+    <p class="pod" id="podpisPodgladu"></p>
+    <div class="lupa"><canvas id="lupa" aria-hidden="true"></canvas><span>Kropki w mniej więcej prawdziwej wielkości. Z odległości ręki zlewają się w jeden jasny odcień.</span></div>
+   </figure>
   </div>
-  <section class="grid">
-{chr(10).join(cards)}
-  </section>
+ </div>
+</section>
+
+<section aria-labelledby="h-wynik" id="res">
+ <div class="wrap">
+  <div class="nag"><span class="nr mono">2</span><h2 id="h-wynik">Do druku</h2></div>
+  <div class="stat" id="stats">Składam PDF…</div>
+  <div class="rzad" style="opacity:1">
+   <button class="btn" id="save" type="button" disabled>Pobierz PDF</button>
+   <a class="btn2" id="open" target="_blank" rel="noopener">Otwórz w nowej karcie</a>
+  </div>
+  <label class="zaznacz"><input type="checkbox" id="instr"> <span>Dołącz instrukcję jako drugą stronę. Drukuj ją na osobnej kartce – samolot to zawsze tylko strona 1.</span></label>
+  <div class="druk">
+   <span class="mono">Ustawienia drukarki</span>
+   <ul>
+    <li><b>Skala 100%</b> albo „rozmiar rzeczywisty”. Wyłącz „dopasuj do strony”, bo inaczej linie zgięć rozjadą się z krawędziami kartki.</li>
+    <li id="orientRada">Papier <b>A4</b>.</li>
+    <li>Drukuj <b>jednostronnie</b>. Wystarczy zwykła drukarka atramentowa albo laserowa.</li>
+   </ul>
+  </div>
+ </div>
+</section>
+
+<section aria-labelledby="h-kroki">
+ <div class="wrap">
+  <div class="nag"><span class="nr mono">3</span><h2 id="h-kroki">Jak złożyć</h2></div>
+  <p class="legenda">Linie <b>przerywane</b> to zgięcia w dolinę (od strony nadruku zgięcie robi rowek), <b>kreska z kropką</b> to grzbiet. Numery przy liniach to numery kroków. Na schematach czerwona linia pokazuje zgięcie z danego kroku.</p>
+  <ol class="skladanie" id="kroki"></ol>
+ </div>
+</section>
+
+<section aria-labelledby="h-pytania">
+ <div class="wrap">
+  <div class="nag"><span class="nr mono">?</span><h2 id="h-pytania">Pytania</h2></div>
+  <div class="reader">
+{faq}
+  </div>
+ </div>
+</section>
 </main>
+
+<div class="oNim">
+ <div class="wrap">
+  <p class="seria mono"><a href="https://domowydrukarz.pl/">Domowy drukarz</a> · <a href="https://domowydrukarz.pl/kalendarz/">Kalendarz ze zdjęć</a> · <a href="https://domowydrukarz.pl/etykiety/">Etykiety po cztery</a> · <a href="https://domowydrukarz.pl/papier/">Papier w kratkę i linie</a> · <a href="https://domowydrukarz.pl/odbitki/">Odbitki z drukarki</a> · <a href="https://domowydrukarz.pl/kolaz/">Kolaż ze zdjęć</a> · <a href="https://domowydrukarz.pl/plakat/">Plakat z kartek</a> · <a href="https://domowydrukarz.pl/ebook/">Papierowy ebook</a> · <b>Papierowe samoloty</b></p>
+ </div>
+</div>
+<footer class="mono"><div class="wrap"><span id="wersjaDol">Papierowe samoloty</span><span>część serii <a href="https://domowydrukarz.pl/">Domowy drukarz</a></span><span>zrobił <a href="https://melin.pl/">Jacek Melin</a></span><a class="kawa" href="https://buycoffee.to/melin" target="_blank" rel="noopener"><img src="https://buycoffee.to/static/img/share/share-button-primary--pl.png" width="146" height="38" alt="Postaw kawę – buycoffee.to"></a></div></footer>
+
+<script>{dd("motyw.js")}</script>
+<script>{czytaj(WEB, "pdf-lib.min.js")}</script>
+<script>{czytaj(WEB, "samoloty-core.js")}</script>
+<script>{js_dane}</script>
+<script>{czytaj(WEB, "app.js")}</script>
 </body>
 </html>
 '''
-os.makedirs(os.path.join(ROOT, "strona"), exist_ok=True)
-open(os.path.join(ROOT, "strona", "index.html"), "w").write(page)
+
+
+if __name__ == "__main__":
+    os.makedirs(os.path.join(ROOT, "strona"), exist_ok=True)
+    out = os.path.join(ROOT, "strona", "index.html")
+    with open(out, "w", encoding="utf-8") as f:
+        f.write(strona())
+    print(out, os.path.getsize(out) // 1024, "KB")

@@ -38,6 +38,17 @@ class Model:
 
     printed_up = False
     half_flip = False
+    inks = {"main": "#6b7884"}  # kolory, które użytkownik może zmienić (rola -> domyślny kolor)
+
+    def c(self, k=0.0, role="main", alpha=None):
+        """Kolor roli (domyślnie głównej), przyciemniony o k."""
+        from paint import Ink, hx
+        return Ink(hx(self.inks[role]), role=role, k=k, alpha=alpha)
+
+    def dots(self, cov, k=0.0, role="main"):
+        """Tło z kropek w kolorze roli; cov – jaka część powierzchni jest zadrukowana."""
+        from paint import Dots
+        return Dots(self.c(k, role), cov)
 
     def fold_half(self, s, text=None):
         W, H = self.W, self.H
@@ -257,7 +268,7 @@ def text(ctx, t, x, y, size, rgb=(0, 0, 0), bold=True, rot=0.0, align="center", 
     xb, yb, ew, eh, _, _ = ctx.text_extents(t)
     dx = {"center": -ew / 2 - xb, "left": -xb, "right": -ew - xb}[align]
     ctx.move_to(dx, -yb / 2)
-    ctx.set_source_rgba(*rgb, alpha)
+    paint.setc(ctx, rgb if (alpha == 1.0 or len(rgb) == 4) else (*rgb[:3], alpha))
     if outline:
         ctx.text_path(t)
         ctx.set_line_width(outline)

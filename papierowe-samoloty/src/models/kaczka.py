@@ -36,36 +36,33 @@ class Kaczka(Model):
 
     # ------------------------------------------------------------------
     tagline = "Kaczka z przednimi skrzydełkami – stabilna i zabawna"
-    style = "kreskówkowy: żółte kaczątko (jasne tło, rysunek kreską)"
+    style = "kreskówkowy: kaczątko"
     fly = "Rzucaj średnio mocno, poziomo. Przednie skrzydełka stabilizują lot – płynie długo i prosto."
     difficulty = 3
+    inks = {"main": "#f2b705"}
 
     def art(self, ctx, view, piece):
-        from paint import hx, fill, poly, line, circle, ellipse, curve, feat
+        from paint import hx, fill, poly, line, circle, ellipse, curve, feat, Dots
         L = 192.0
-        cream, ochre, ora, lora = hx("#fff8d6"), hx("#d99a1e"), hx("#f08a24"), hx("#ffd8ab")
-        fill(ctx, cream)
+        ora = hx("#f07a1a")
+        beak = Dots(ora, 0.24)
+        fill(ctx, self.dots(0.08))
         if piece.zone == "winglet":
             for k in range(4):
-                line(ctx, [(-300, 4 + k * 3), (300, 4 + k * 3)], ochre, lw=0.3)
+                line(ctx, [(-300, 4 + k * 3), (300, 4 + k * 3)], self.c(0.35), lw=0.3)
             return
         if view == "top":
             for s in (1, -1):
-                # pióra na tylnej krawędzi – łuki kreską z jasnym wypełnieniem
                 for row, x0 in enumerate((2, 17)):
                     for k in range(8):
                         y = (10 + k * 9 + row * 4.5) * s
-                        ellipse(ctx, x0 + 9, y, 10, 4.6, hx("#fff0b8"), stroke=ochre, lw=0.35)
-                # puszek na grzbiecie skrzydła
+                        ellipse(ctx, x0 + 9, y, 10, 4.6, self.dots(0.13), stroke=self.c(0.35), lw=0.35)
                 for k in range(7):
                     curve(ctx, (55 + k * 15, 18 * s), (60 + k * 15, 23 * s), (64 + k * 15, 23 * s), (69 + k * 15, 18 * s),
-                          ochre, lw=0.35)
-                # przednie skrzydełka (kaczka)
-                poly(ctx, [(L - 75, 22 * s), (L - 40, 22 * s), (L - 70, 60 * s), (L - 95, 60 * s)], lora, stroke=ora, lw=0.4)
-            # dziób
-            poly(ctx, [(L - 22, -8), (L + 6, 0), (L - 22, 8)], lora, stroke=ora, lw=0.5)
+                          self.c(0.35), lw=0.35)
+                poly(ctx, [(L - 75, 22 * s), (L - 40, 22 * s), (L - 70, 60 * s), (L - 95, 60 * s)], beak, stroke=ora, lw=0.4)
+            poly(ctx, [(L - 22, -8), (L + 6, 0), (L - 22, 8)], beak, stroke=ora, lw=0.5)
             line(ctx, [(L - 20, 0), (L + 2, 0)], ora, lw=0.4)
-            # oczy (po jednym na każdej połówce, żeby zgięcie ich nie przecinało)
             for s in (1, -1):
                 p = self.fit("top", 11, 11, (L - 36, 11 * s))
                 if p:
@@ -73,17 +70,17 @@ class Kaczka(Model):
                     circle(ctx, p[0] + 1.3, p[1] + 0.4 * s, 2.2, hx("#2a2a2a"))
                     circle(ctx, p[0] + 2.1, p[1] + 1.1 * s, 0.7, hx("#ffffff"))
                     feat(ctx, "oko", p[0] - 5, p[1] - 5, p[0] + 5, p[1] + 5)
-                    circle(ctx, p[0] - 2, p[1] + 9 * s, 2.6, hx("#ffd3da"))
+                    circle(ctx, p[0] - 2, p[1] + 9 * s, 2.6, Dots(hx("#ef6f8f"), 0.35))
         elif view == "bottom":
+            fill(ctx, self.dots(0.05))
             for s in (1, -1):
                 p = self.fit("bottom", 16, 16, (100, 25 * s))
                 if p:
-                    # łapka – kontur
                     x, y = p
-                    poly(ctx, [(x + 6, y), (x - 6, y - 6 * s), (x - 3, y), (x - 6, y + 6 * s)], lora, stroke=ora, lw=0.4)
+                    poly(ctx, [(x + 6, y), (x - 6, y - 6 * s), (x - 3, y), (x - 6, y + 6 * s)], beak, stroke=ora, lw=0.4)
                     feat(ctx, "łapka", x - 7, y - 7, x + 7, y + 7)
-            poly(ctx, [(L - 22, -7), (L + 6, 0), (L - 22, 7)], lora, stroke=ora, lw=0.4)
+            poly(ctx, [(L - 22, -7), (L + 6, 0), (L - 22, 7)], beak)
         else:
             u = -1 if view == "left" else 1
             for k in range(4):
-                ellipse(ctx, (75 + k * 16) * u, 9, 8, 3.4, hx("#fff0b8"), stroke=ochre, lw=0.3)
+                ellipse(ctx, (75 + k * 16) * u, 9, 8, 3.4, self.dots(0.22), stroke=self.c(0.35), lw=0.3)

@@ -19,11 +19,33 @@ Składanie to tradycyjne, przekazywane od pokoleń bazy (strzałka, „bomba wod
 nos zwijany, kaczka z przednimi lotkami, „ważka” z wycięciem). Geometria jest narysowana od nowa pod A4.
 Nie kopiujemy szablonów z książek. Nazwy modeli są nasze.
 
+## Strona narzędzia
+
+`strona/index.html` to gotowe narzędzie w stylu domowydrukarz.pl (te same style, pasek, przełącznik motywu,
+stopka; własny kolor narzędzia: `.k-samoloty{--k:#5F7A14;--kn:#A9C653}` do karty na stronie głównej).
+Wszystko jest w jednym pliku: pdf-lib, dane modeli i skrypt, więc działa bez internetu.
+
+- wybór modelu z miniaturami, podgląd złożonego samolotu (z góry, od spodu, arkusz) i lupa z kropkami w skali 1:1,
+- **kolor główny do wyboru**: 10 próbek albo dowolny kolor. Wzór zostaje, zmienia się kolor (np. różowa strzała),
+- PDF składany w przeglądarce (pdf-lib), opcjonalnie z instrukcją na drugiej stronie,
+- kroki składania rysowane na żywo w wybranym kolorze,
+- model i kolor są w adresie strony (`?model=grot&kolor=e2508c`).
+
+![Kolory](wyniki/kolory.png)
+
+## Kropki zamiast jednolitego koloru
+
+Kolorowe pola są drukowane rastrem kropek co 1 mm (siatka heksagonalna). Z odległości ręki
+zlewają się w jasny odcień, a tuszu jest kilka razy mniej niż przy pełnej apli. Dla drukarek
+atramentowych na zwykłym papierze 80 g to różnica między płaską kartką a pofalowaną.
+W PDF każdy rząd kropek to jedna linia z kreską o zerowej długości i okrągłym zakończeniu,
+więc plik waży kilkadziesiąt KB.
+
 ## Pliki
 
 W katalogu `wyniki/<model>/`:
 
-- `<model>.pdf` – strona 1 to arkusz do druku (wektor), strona 2 to instrukcja krok po kroku,
+- `<model>.pdf` – strona 1 to arkusz do druku (wektor, kolor naturalny), strona 2 to instrukcja krok po kroku,
 - `<model>-tylko-wydruk.pdf` – sam arkusz,
 - `<model>-podglad.png`, `<model>-spod.png` – podgląd złożonego modelu (z góry i od spodu),
 - `<model>-arkusz.png` – podgląd arkusza.
@@ -31,8 +53,10 @@ W katalogu `wyniki/<model>/`:
 Pliki zbiorcze:
 
 - `wyniki/wszystkie-arkusze.pdf` – sześć arkuszy w jednym pliku,
-- `wyniki/modele.json` – dane do strony,
-- `strona/index.html` – gotowa sekcja galerii z linkami do PDF-ów (generuje ją `src/strona.py`).
+- `wyniki/modele.json` – podsumowanie modeli,
+- `wyniki/dane/<model>.json` – dane dla strony: arkusz jako lista operacji wektorowych z kolorem-rolą,
+  sceny podglądu 3D i schematy kroków,
+- `strona/index.html` – narzędzie na stronę (generuje je `src/strona.py`).
 
 ## Jak drukować
 
@@ -67,7 +91,12 @@ Pliki zbiorcze:
   wzoru przez odwrotne przekształcenie, ze spadem 3 mm. Tu powstają też schematy kroków
   i podgląd 3D.
 - `models/*.py` – definicje modeli: kolejne zgięcia, zawiasy skrzydeł i malowanie.
-- `build.py` – generuje wszystkie PDF-y i podglądy.
+- `export.py` – zapisuje arkusz jako listę operacji (ścieżki, wypełnienia, kreski, rastry kropek) z kolorem
+  głównym jako rolą, którą przeglądarka podmienia,
+- `web/samoloty-core.js` – rysuje te dane na canvasie i składa PDF przez pdf-lib; tego samego kodu
+  używa Node przy budowaniu PDF-ów w repo (`web/pdf-node.js`),
+- `web/app.js` – logika strony, `web/dd/` – style i elementy skopiowane z domowydrukarz.pl,
+- `build.py` – generuje dane, PDF-y i podglądy; `strona.py` – składa stronę.
 
 Narzędzia pomocnicze:
 
@@ -80,15 +109,18 @@ Narzędzia pomocnicze:
   wypisuje też pokrycie tuszem i ucięte detale,
 - `strona.py` – odświeża `strona/index.html`.
 
-Wymagania: Python 3, `pip install shapely numpy scipy pillow cairocffi pymupdf`.
+Wymagania: Python 3 (`pip install shapely numpy scipy pillow cairocffi pymupdf`) i Node.js.
 
 ```sh
 cd papierowe-samoloty/src
 python3 build.py            # wszystkie modele
 python3 build.py mops       # jeden model
+python3 strona.py           # strona/index.html
 ```
 
-Aby zmienić malowanie, edytuj metodę `art()` w pliku modelu. Rysujesz w milimetrach
+Aby zmienić malowanie, edytuj metodę `art()` w pliku modelu. Kolor główny modelu to `inks["main"]`;
+w malowaniu używaj `self.c(k)` (kolor główny przyciemniony o k) i `self.dots(pokrycie)` (raster kropek),
+żeby wybór koloru na stronie działał. Rysujesz w milimetrach
 w układzie gotowego samolotu: `top` (X do przodu, Y w lewo), `bottom`, `left`, `right`.
 Resztę, czyli rozłożenie wzoru na kartkę, robi symulator. Napisy wstawiaj przez
 `self.label(...)`, a inne detale przez `self.fit(...)`. Obie funkcje same znajdują najbliższe

@@ -1,0 +1,1 @@
+try{var m=localStorage.getItem("domowydrukarz-motyw");if(m==="light"||m==="dark")document.documentElement.setAttribute("data-theme",m)}catch(e){}

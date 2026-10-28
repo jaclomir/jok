@@ -47,54 +47,47 @@ class Wazka(Model):
                 (n + 4, self.trim_text, None)]
 
     # ------------------------------------------------------------------
-    tagline = "Dwie pary skrzydeł – zwinna i wesoła akrobatka"
-    style = "realistyczny: ważka o przezroczystych skrzydłach z żyłkowaniem"
+    tagline = "Dwie pary skrzydeł – zwinna akrobatka"
+    style = "realistyczny: ważka o przezroczystych skrzydłach"
     fly = "W domu rzucaj lekko, poziomo. Na dworze, rzucona mocniej, robi pętle. Potrzebne nożyczki (jedno cięcie)."
     difficulty = 2
+    inks = {"main": "#1f9a93"}
 
     def art(self, ctx, view, piece):
-        import math
-        from paint import hx, fill, poly, rect, line, circle, ellipse, curve, feat
+        from paint import hx, fill, poly, line, circle, ellipse, feat
         L = self.H - self.STRIP * self.NROLL
-        vein, teal, body = hx("#5fa9a4"), hx("#2f8f8a"), hx("#2f7fa5")
-        fill(ctx, hx("#fbfefe"))
-        if view == "top":
-            from paint import rgrad, paint_src
-            paint_src(ctx, rgrad(ctx, L - 30, 0, 5, 140, [(0, hx("#e3f3f6")), (1, hx("#fbfefe"))]))
+        vein = self.c(-0.0)
+        fill(ctx, hx("#ffffff"))
         if piece.zone == "winglet":
             for k in range(5):
                 line(ctx, [(-300, k * 4), (300, k * 4 + 2)], vein, lw=0.25)
             return
         if view == "top":
+            ellipse(ctx, L - 40, 0, 70, 40, self.dots(0.06))
             for s in (1, -1):
-                # przednie skrzydło: żyłki równoległe do krawędzi natarcia + poprzeczne
                 for k in range(5):
                     xs = L - 3 - k * 3.2
-                    line(ctx, [(xs, 4 * s), (xs - 2, 150 * s)], vein, lw=0.3)
-                # tylne skrzydło: żyłki wzdłuż kierunku skrzydła
+                    line(ctx, [(xs, 4 * s), (xs - 2, 150 * s)], vein, lw=0.28)
                 for k in range(7):
-                    line(ctx, [(8 + k * 7, 4 * s), (2 + k * 2, 150 * s)], vein, lw=0.3)
+                    line(ctx, [(8 + k * 7, 4 * s), (2 + k * 2, 150 * s)], vein, lw=0.28)
                 for y in range(10, 150, 6):
-                    line(ctx, [(L - 20, y * s), (L, y * s)], vein, lw=0.18)
-                    line(ctx, [(0, y * s), (55, (y + 3) * s)], vein, lw=0.18)
-                # plamki przy końcach skrzydeł
+                    line(ctx, [(L - 20, y * s), (L, y * s)], vein, lw=0.16)
+                    line(ctx, [(0, y * s), (55, (y + 3) * s)], vein, lw=0.16)
                 for near in ((L - 7, 132 * s), (12, 132 * s)):
                     p = self.fit("top", 6, 5, near)
                     if p:
-                        poly(ctx, [(p[0] - 2.5, p[1]), (p[0], p[1] - 2 * s), (p[0] + 2.5, p[1]), (p[0], p[1] + 2 * s)], teal)
+                        poly(ctx, [(p[0] - 2.5, p[1]), (p[0], p[1] - 2 * s), (p[0] + 2.5, p[1]), (p[0], p[1] + 2 * s)], self.c(0.3))
                         feat(ctx, "plamka", p[0] - 2.5, p[1] - 2, p[0] + 2.5, p[1] + 2)
-                # oczy – na każdej połówce osobno
                 p = self.fit("top", 11, 11, (L - 8, 7 * s))
                 if p:
-                    circle(ctx, p[0], p[1], 4.8, hx("#a9dcea"), stroke=body, lw=0.45)
-                    circle(ctx, p[0] + 1.2, p[1] + 0.5 * s, 1.6, hx("#24526a"))
+                    circle(ctx, p[0], p[1], 4.8, self.dots(0.45), stroke=self.c(0.35), lw=0.45)
+                    circle(ctx, p[0] + 1.2, p[1] + 0.5 * s, 1.6, hx("#1d2b33"))
                     circle(ctx, p[0] + 1.8, p[1] + 1.1 * s, 0.6, hx("#ffffff"))
                     feat(ctx, "oko", p[0] - 5, p[1] - 5, p[0] + 5, p[1] + 5)
-            # odwłok wzdłuż grzbietu: segmenty
-            ellipse(ctx, L - 22, 0, 8, 4.2, hx("#8fcde0"), stroke=body, lw=0.4)
+            ellipse(ctx, L - 22, 0, 8, 4.2, self.dots(0.45), stroke=self.c(0.35), lw=0.4)
             for k in range(9):
-                x = L - 36 - k * 9.5
-                ellipse(ctx, x, 0, 4.6, 3.0 - k * 0.15, hx("#a9dcea") if k % 2 else hx("#7cc3d9"), stroke=body, lw=0.35)
+                ellipse(ctx, L - 36 - k * 9.5, 0, 4.6, 3.0 - k * 0.15, self.dots(0.48 if k % 2 else 0.3),
+                        stroke=self.c(0.35), lw=0.35)
         elif view == "bottom":
             for k in range(3):
                 line(ctx, [(L - 3 - k * 3.5, -150), (L - 3 - k * 3.5, 150)], vein, lw=0.25)

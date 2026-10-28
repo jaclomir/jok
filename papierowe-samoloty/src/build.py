@@ -255,25 +255,31 @@ def build(slug, cls):
         os.path.join(od, f"{slug}-spod.png"))
     tex.resize((tex.width // 2, tex.height // 2)).save(os.path.join(od, f"{slug}-arkusz.png"))
     steps = step_images(M, tex)
-    pdf = os.path.join(od, f"{slug}.pdf")
-    surf = cairo.PDFSurface(pdf, M.W * MM, M.H * MM)
-    surf.set_metadata(cairo.PDF_METADATA_TITLE, f"{M.name} – papierowy samolot (domowydrukarz.pl)")
-    surf.set_metadata(cairo.PDF_METADATA_AUTHOR, "domowydrukarz.pl")
-    # strona 1: arkusz do druku (wektor)
-    ctx = paper_ctx(surf, M.W, M.H, MM)
-    paint_sheet(ctx, M, M.pieces)
-    surf.show_page()
-    # strona 2: instrukcja (A4 pionowo)
-    surf.set_size(210 * MM, 297 * MM)
+    # dane dla strony i arkusz PDF – składany tym samym kodem JS (pdf-lib) co w przeglądarce
+    import export
+    import subprocess
+    import pymupdf
+    dd = os.path.join(OUT, "dane")
+    os.makedirs(dd, exist_ok=True)
+    js = os.path.join(dd, f"{slug}.json")
+    with open(js, "w") as f:
+        json.dump(export.model_data(M), f, ensure_ascii=False, separators=(",", ":"))
+    arkusz = os.path.join(od, f"{slug}-tylko-wydruk.pdf")
+    subprocess.run(["node", os.path.join(os.path.dirname(__file__), "web", "pdf-node.js"), js, arkusz], check=True)
+    # instrukcja (A4 pionowo) z cairo, doklejona jako strona 2
+    instr = os.path.join(od, f".{slug}-instrukcja.pdf")
+    surf = cairo.PDFSurface(instr, 210 * MM, 297 * MM)
     ctx = cairo.Context(surf)
     ctx.scale(MM, MM)
     instruction_page(ctx, M, tex, hero, top, steps)
     surf.show_page()
     surf.finish()
-    # osobny plik z samym arkuszem
-    s1 = cairo.PDFSurface(os.path.join(od, f"{slug}-tylko-wydruk.pdf"), M.W * MM, M.H * MM)
-    paint_sheet(paper_ctx(s1, M.W, M.H, MM), M, M.pieces)
-    s1.finish()
+    doc = pymupdf.open(arkusz)
+    doc.insert_pdf(pymupdf.open(instr))
+    doc.set_metadata({"title": f"{M.name} – papierowy samolot (domowydrukarz.pl)", "author": "domowydrukarz.pl"})
+    doc.rewrite_images(dpi_threshold=200, dpi_target=170, quality=82, lossy=True, lossless=True)
+    doc.save(os.path.join(od, f"{slug}.pdf"), garbage=3, deflate=True)
+    os.remove(instr)
     from views import ink
     mean, mx, frac = ink(M)
     bad = M.check_features()

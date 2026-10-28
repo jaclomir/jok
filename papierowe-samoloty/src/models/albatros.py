@@ -31,39 +31,40 @@ class Albatros(Model):
 
     # ------------------------------------------------------------------
     tagline = "Szeroki szybowiec – długi, spokojny lot w domu"
-    style = "realistyczny: biały szybowiec z czerwonymi paskami"
+    style = "realistyczny: biały szybowiec z kolorowymi paskami"
     fly = "Wypuszczaj delikatnie, poziomo, z ręki nad głową. Szybuje wolno i długo – idealny do mieszkania."
     difficulty = 2
+    inks = {"main": "#d62f3d"}
 
     def art(self, ctx, view, piece):
-        from paint import hx, fill, poly, rect, line, ellipse
+        from paint import hx, fill, poly, rect, line, ellipse, Dots
         L = self.H - 68
-        red, navy, grey = hx("#e2434f"), hx("#24375e"), hx("#a9b1ba")
+        navy, grey = hx("#24375e"), hx("#a9b1ba")
         fill(ctx, hx("#ffffff"))
         if piece.zone == "winglet":
             for k in range(3):
-                rect(ctx, -400, 55 + k * 4.5, 400, 56.6 + k * 4.5, red)
+                rect(ctx, -400, 55 + k * 4.5, 400, 56.6 + k * 4.5, self.c())
             return
         if view in ("top", "bottom"):
+            if view == "bottom":
+                fill(ctx, Dots(hx("#8a96a3"), 0.05))
             for s in (1, -1):
-                # trzy cienkie czerwone pasy przy końcach skrzydeł
                 for k in range(3):
                     y0 = (66 + k * 6) * s
-                    rect(ctx, -10, min(y0, y0 + 2.2 * s), 200, max(y0, y0 + 2.2 * s), red)
+                    rect(ctx, -10, min(y0, y0 + 2.2 * s), 200, max(y0, y0 + 2.2 * s), self.c())
                 if view == "top":
-                    line(ctx, [(L - 2, 1 * s), (L - 92, 90 * s)], navy, lw=0.8)
-                    # lotki i klapy
+                    line(ctx, [(L - 2, 1 * s), (L - 92, 90 * s)], self.c(0.3), lw=0.8)
                     for y in (22, 44, 63):
                         line(ctx, [(0, y * s), (9, y * s)], grey, lw=0.3)
                     line(ctx, [(9, 22 * s), (9, 63 * s)], grey, lw=0.3)
             if view == "top":
                 self.label(ctx, "top", "SP-3415", (48, 40), 10, rgb=navy, bold=False)
                 self.label(ctx, "top", "SP-3415", (48, -40), 10, rgb=navy, bold=False)
-                ellipse(ctx, L - 22, 0, 16, 3.2, hx("#a9c8e0"), stroke=navy, lw=0.3)
+                ellipse(ctx, L - 22, 0, 16, 3.2, Dots(hx("#2f6aa8"), 0.35), stroke=navy, lw=0.3)
             else:
                 self.label(ctx, "bottom", "SP-3415", (80, 35), 10, rgb=navy, bold=False)
         else:
             u = -1 if view == "left" else 1
-            line(ctx, [(10 * u, 9), ((L - 8) * u, 9)], navy, lw=0.8)
-            poly(ctx, [((L + 4) * u, -2), ((L - 14) * u, -2), ((L - 14) * u, 40), ((L + 4) * u, 40)], hx("#f6c3c7"))
+            line(ctx, [(10 * u, 9), ((L - 8) * u, 9)], self.c(0.3), lw=0.8)
+            poly(ctx, [((L + 4) * u, -2), ((L - 14) * u, -2), ((L - 14) * u, 40), ((L + 4) * u, 40)], self.dots(0.3))
             self.label(ctx, view, "ALBATROS", (95 * u, 17), 4.5, rgb=navy)
