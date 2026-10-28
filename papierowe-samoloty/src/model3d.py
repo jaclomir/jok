@@ -40,6 +40,7 @@ class Hinge:
     b: tuple
     angle: float  # stopnie; 90 = skrzydło poziomo
     zone: str  # nazwa strefy za zawiasem
+    region: object = None  # opcjonalnie: zawias działa tylko w tym obszarze (współrzędne płaskie)
 
 
 @dataclass
@@ -113,7 +114,8 @@ class Plane3D:
         return rot_axis(a3, b3 - a3, math.radians(ang) * self._rot_sign(h, s))
 
     def _chain(self, f):
-        return [h for h in self.hinges if self._far_side(h).contains(f.flat.representative_point())]
+        pt = f.flat.representative_point()
+        return [h for h in self.hinges if self._far_side(h).contains(pt) and (h.region is None or h.region.contains(pt))]
 
     def _transform(self, f):
         """Macierz 4x4: punkt (x_flat, y_flat, 0) -> 3D."""
@@ -138,6 +140,8 @@ class Plane3D:
         for i, h in enumerate(self.hinges):
             a, b = np.array(h.a, float), np.array(h.b, float)
             ln = LineString([a - (b - a) * 50, b + (b - a) * 50])
+            if h.region is not None:
+                ln = ln.intersection(h.region)
             far = self._far_side(h)
             d2 = np.array([-(b - a)[1], (b - a)[0]])
             d2 /= np.linalg.norm(d2)

@@ -6,7 +6,23 @@ import random
 
 import cairocffi as cairo
 
-from base import text  # noqa: F401  (re-eksport)
+from shapely.geometry import Polygon
+
+REC = []  # zarejestrowane detale: (widok, nazwa, wielokąt we współrzędnych widoku)
+REC_ON = [False]
+REC_VIEW = [None]
+
+
+def feat(ctx, name, x0, y0, x1, y1):
+    """Rejestruje detal (prostokąt w bieżącym układzie) do sprawdzenia, czy nie jest ucięty."""
+    if not REC_ON[0]:
+        return
+    M = ctx.get_matrix()
+    pts = [M.transform_point(x, y) for x, y in ((x0, y0), (x1, y0), (x1, y1), (x0, y1))]
+    REC.append((REC_VIEW[0], name, Polygon(pts)))
+
+
+from base import text  # noqa: E402,F401  (re-eksport)
 
 
 def hx(h, a=None):
@@ -123,6 +139,7 @@ def checker(ctx, x, y, s, rot=0.0, border=0.6):
     ctx.translate(x, y)
     ctx.rotate(math.radians(rot))
     h = s / 2
+    feat(ctx, "szachownica", -h - border, -h - border, h + border, h + border)
     w = hx("#ffffff")
     r = hx("#d4213d")
     rect(ctx, -h - border, -h - border, h + border, h + border, hx("#ffffff"))

@@ -243,6 +243,24 @@ class Sheet:
         self.renumber()
         return self
 
+    def cut(self, region, text=""):
+        """Odcina nożyczkami fragment `region` (współrzędne stanu złożonego) ze wszystkich warstw."""
+        self.nstep += 1
+        self.steps.append(Step(text, None, None, None, state=self.snapshot(), extra=[region]))
+        edge = region.boundary
+        new = []
+        for f in self.facets:
+            fl = f.flat
+            Minv = np.linalg.inv(f.M)
+            seg = fl.intersection(edge)
+            for g in getattr(seg, "geoms", [seg]):
+                if isinstance(g, LineString) and g.length > 0.5:
+                    self.creases.append(Crease(apply(Minv, g), "cut", self.nstep))
+            for part in polys(fl.difference(region)):
+                new.append(Facet(apply(Minv, part), f.M.copy(), f.z, dict(f.tag)))
+        self.facets = new
+        self.renumber()
+
     def paper_to_flat(self, x, y):
         """Położenie punktu kartki w stanie złożonym."""
         p = Point(x, y)

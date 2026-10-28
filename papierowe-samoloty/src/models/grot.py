@@ -23,56 +23,55 @@ class Grot(Model):
 
     # ------------------------------------------------------------------
     tagline = "Klasyczna strzała – szybka i prosta"
-    style = "realistyczny: myśliwiec w szarym kamuflażu"
-    fly = "Rzucaj mocno i prosto, lekko w dół. Leci szybko i daleko, ale krótko – to klasyczna strzała."
+    style = "realistyczny: jasnoszary myśliwiec z szachownicą"
+    fly = "Rzucaj mocno i prosto, lekko w dół. Leci szybko i daleko – to klasyczna strzała."
     difficulty = 1
 
     def art(self, ctx, view, piece):
-        from paint import (hx, fill, poly, rect, circle, ellipse, line, checker, splinter, text, lgrad,
-                           paint_src)
+        from paint import hx, fill, poly, rect, ellipse, line, checker, splinter, feat
         L = self.H
+        panel = hx("#8e98a3")
         if view == "top":
-            fill(ctx, hx("#7d8a96"))
-            splinter(ctx, -10, -70, 300, 70, [hx("#5e6b77"), hx("#9aa6b1"), hx("#6c7884")], n=22, seed=7)
-            # radar w nosie
-            poly(ctx, [(L - 40, -8), (L + 5, 0), (L - 40, 8)], hx("#3d4650"))
-            # kabina na grzbiecie (rozdzielona zgięciem kadłuba)
-            ellipse(ctx, L - 75, 0, 24, 4.2, hx("#1d3557"))
-            ellipse(ctx, L - 70, 1.2, 10, 1.4, hx("#a8dadc", 0.7))
-            # krawędź natarcia i szachownice
+            fill(ctx, hx("#dde2e7"))
+            splinter(ctx, -10, -70, 300, 70, [hx("#c8d0d8"), hx("#d2d9e0"), hx("#bfc8d1")], n=22, seed=7)
+            # linie paneli i krawędź natarcia
             for s in (1, -1):
-                line(ctx, [(L, 0), (0, 63 * s)], hx("#c8d0d6"), lw=1.2)
-                checker(ctx, 62, 36 * s, 15, rot=0)
-                text(ctx, "07", 120, 22 * s, 9, rgb=hx("#2b2f33"), rot=0)
-                # lotki
-                line(ctx, [(2, 30 * s), (2, 58 * s)], hx("#3d4650"), lw=0.5)
-                line(ctx, [(2, 30 * s), (22, 30 * s)], hx("#3d4650"), lw=0.4)
-            # linie paneli
-            for x in range(40, 280, 30):
-                line(ctx, [(x, -60), (x, 60)], hx("#000000", 0.08), lw=0.3)
-            text(ctx, "GROT", 175, 0, 6, rgb=hx("#ffffff"), alpha=0.6)
+                line(ctx, [(L - 6, 0.5 * s), (0, 63 * s)], hx("#b9c1c9"), lw=0.6)
+                for x in (60, 110, 160, 210):
+                    yy = 63 * (1 - x / L)
+                    line(ctx, [(x, 2 * s), (x, yy * s)], panel, lw=0.2)
+                # lotki przy tylnej krawędzi
+                line(ctx, [(10, 26 * s), (10, 54 * s)], panel, lw=0.35)
+                line(ctx, [(0, 26 * s), (10, 26 * s)], panel, lw=0.35)
+                p = self.fit("top", 16, 16, (62, 36 * s))
+                if p:
+                    checker(ctx, p[0], p[1], 13)
+                self.label(ctx, "top", "07", (125, 22 * s), 8, rgb=hx("#4a535d"))
+                self.label(ctx, "top", "NIE STAWAĆ", (95, 9 * s), 2.2, rgb=hx("#6b737c"), bold=False)
+            # kabina na grzbiecie i stożek nosa
+            poly(ctx, [(L - 100, -3), (L - 40, -3.5), (L - 40, 3.5), (L - 100, 3)], hx("#a3acb6"))
+            ellipse(ctx, L - 72, 0, 22, 3.4, hx("#7fa6c4"), stroke=hx("#3d5a75"), lw=0.3)
+            ellipse(ctx, L - 66, 1.0, 8, 1.0, hx("#e8f1f8"))
+            poly(ctx, [(L - 34, -4.5), (L + 4, 0), (L - 34, 4.5)], hx("#b3bcc6"))
         elif view == "bottom":
-            fill(ctx, hx("#d5dbe0"))
+            fill(ctx, hx("#f1f3f5"))
             for s in (1, -1):
-                checker(ctx, 70, 34 * s, 14)
-                # pocisk pod skrzydłem
-                y = 22 * s
-                rect(ctx, 120, y - 1.6, 185, y + 1.6, hx("#f1f3f5"))
-                poly(ctx, [(185, y - 1.6), (194, y), (185, y + 1.6)], hx("#d4213d"))
-                poly(ctx, [(120, y - 1.6), (112, y - 5), (124, y - 1.6)], hx("#8d99a6"))
-                poly(ctx, [(120, y + 1.6), (112, y + 5), (124, y + 1.6)], hx("#8d99a6"))
-                line(ctx, [(140, y), (175, y)], hx("#8d99a6"), lw=0.3)
-            poly(ctx, [(L - 40, -6), (L + 5, 0), (L - 40, 6)], hx("#56606a"))
+                p = self.fit("bottom", 15, 15, (180, 28 * s))
+                if p:
+                    checker(ctx, p[0], p[1], 12)
+                # podwieszony pocisk – tylko kontur
+                y = 14 * s
+                x0 = 205
+                poly(ctx, [(x0, y - 1.4), (x0 + 50, y - 1.4), (x0 + 58, y), (x0 + 50, y + 1.4), (x0, y + 1.4)],
+                     hx("#fbfbfb"), stroke=hx("#7b8591"), lw=0.3)
+                poly(ctx, [(x0 + 50, y - 1.4), (x0 + 58, y), (x0 + 50, y + 1.4)], hx("#e05a6b"))
+                line(ctx, [(x0 + 2, y), (x0 - 5, y + 4 * s)], hx("#7b8591"), lw=0.3)
+            line(ctx, [(60, 0), (L, 0)], panel, lw=0.2)
         else:
-            # burty kadłuba: przód nadrukowany, tył zostaje biały
             u = -1 if view == "left" else 1
-            paint_src(ctx, lgrad(ctx, 0, 0, 0, 40, [(0, hx("#b9c2ca")), (1, hx("#8d99a6"))]))
-            X = lambda x: x * u
-            poly(ctx, [(X(L + 5), -1), (X(L - 35), -1), (X(L - 35), 30), (X(L + 5), 30)], hx("#3d4650"))
-            rect(ctx, min(X(150), X(230)), 3, max(X(150), X(230)), 5.5, hx("#d4213d"))
-            rect(ctx, min(X(150), X(230)), 5.5, max(X(150), X(230)), 7, hx("#ffffff"))
-            text(ctx, "07", X(200), 14, 9, rgb=hx("#2b2f33"))
-            checker(ctx, X(160), 14, 9)
-            text(ctx, "SIŁY POWIETRZNE KARTKI", X(232), 9, 2.1, rgb=hx("#2b2f33"), alpha=0.8)
+            fill(ctx, hx("#e2e6ea"))
+            # pas wzdłuż burty
+            line(ctx, [(150 * u, 4), (290 * u, 1.5)], hx("#e05a6b"), lw=0.9)
             # wlot powietrza
-            poly(ctx, [(X(140), 2), (X(165), 2), (X(165), 8), (X(140), 10)], hx("#2a3038"))
+            poly(ctx, [(150 * u, 1), (172 * u, 1), (172 * u, 5), (150 * u, 6)], hx("#c3cad1"), stroke=panel, lw=0.25)
+            self.label(ctx, view, "07", (215 * u, 8), 6, rgb=hx("#4a535d"), outline=0.3)

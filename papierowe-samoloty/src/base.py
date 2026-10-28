@@ -79,6 +79,119 @@ class Model:
         return out
 
     wm_text = "domowydrukarz.pl"
+    MARGIN = 5.0  # mm niezadrukowanego brzegu w drukarce domowej
+    SAFE = 2.5  # mm odstępu od zgięć
+
+    # ------------------------------------------------------------------
+    # bezpieczne obszary dla napisów i detali
+    def safe(self, view):
+        """Lista wielokątów (współrzędne widoku), w których detal nie zostanie ucięty."""
+        cache = self.__dict__.setdefault("_safe", {})
+        if view in cache:
+            return cache[view]
+        from shapely.geometry import box
+        from shapely.ops import unary_union
+        from fold import apply, polys
+        from model3d import view_affine
+        groups = {}
+        for p in self.pieces:
+            if not p.printed or p.view != view:
+                continue
+            key = tuple(np.round(view_affine(p).ravel(), 3))
+            groups.setdefault(key, []).append(p)
+        printable = box(self.MARGIN, self.MARGIN, self.W - self.MARGIN, self.H - self.MARGIN)
+        out = []
+        for ps in groups.values():
+            paper = unary_union([p.paper.buffer(0.05) for p in ps]).buffer(-0.05)
+            g = paper.buffer(-self.SAFE).intersection(printable)
+            V = view_affine(ps[0])
+            out += polys(apply(V, g))
+        cache[view] = out
+        return out
+
+    def fits(self, view, x, y, w, h, rot=0.0):
+        from shapely import affinity
+        from shapely.geometry import box
+        b = affinity.rotate(box(x - w / 2, y - h / 2, x + w / 2, y + h / 2), rot, origin=(x, y))
+        return any(g.contains(b) for g in self.safe(view))
+
+    def fit(self, view, w, h, near, rot=0.0, step=1.0, maxd=80):
+        """Najbliższy `near` środek prostokąta w×h mieszczącego się w całości na jednym kawałku."""
+        key = (view, round(w, 2), round(h, 2), tuple(np.round(near, 2)), rot)
+        cache = self.__dict__.setdefault("_fitcache", {})
+        if key not in cache:
+            cache[key] = self._fit(view, w, h, near, rot, step, maxd)
+        return cache[key]
+
+    def _fit(self, view, w, h, near, rot, step, maxd):
+        x0, y0 = near
+        if self.fits(view, x0, y0, w, h, rot):
+            return x0, y0
+        for r in np.arange(step, maxd, step):
+            n = max(8, int(2 * math.pi * r / step))
+            for k in range(n):
+                a = 2 * math.pi * k / n
+                x, y = x0 + r * math.cos(a), y0 + r * math.sin(a)
+                if self.fits(view, x, y, w, h, rot):
+                    return x, y
+        return None
+
+    def text_size(self, t, size, bold=True, font="DejaVu Sans"):
+        s = cairo.RecordingSurface(cairo.CONTENT_COLOR, None)
+        c = cairo.Context(s)
+        c.select_font_face(font, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD if bold else cairo.FONT_WEIGHT_NORMAL)
+        c.set_font_size(size)
+        xb, yb, ew, eh, _, _ = c.text_extents(t)
+        return ew, eh
+
+    def label(self, ctx, view, t, near, size, rot=0.0, shrink=True, **kw):
+        """Napis w najbliższym miejscu, gdzie zmieści się w całości; w razie potrzeby mniejszy."""
+        sz = size
+        while sz >= size * (0.6 if shrink else 1.0):
+            w, h = self.text_size(t, sz, kw.get("bold", True))
+            p = self.fit(view, w + 1.0, h + 1.0, near, rot=rot)
+            if p:
+                text(ctx, t, p[0], p[1], sz, rot=rot, **kw)
+                return p
+            sz *= 0.9
+        return None
+
+    def check_features(self):
+        """Sprawdza zarejestrowane detale (napisy, oczy, znaki): czy nic nie jest ucięte."""
+        import paint
+        paint.REC.clear()
+        paint.REC_ON[0] = True
+        try:
+            import cairocffi as cairo
+            s = cairo.RecordingSurface(cairo.CONTENT_COLOR, None)
+            for view in ("top", "bottom", "left", "right"):
+                ps = [p for p in self.pieces if p.view == view and p.printed]
+                zones = sorted({p.zone for p in ps})
+                for z in zones:
+                    p = next(p for p in ps if p.zone == z)
+                    ctx = cairo.Context(s)
+                    paint.REC_VIEW[0] = view
+                    self.art(ctx, view, p)
+        finally:
+            paint.REC_ON[0] = False
+        bad = []
+        seen = set()
+        for view, name, poly in paint.REC:
+            key = (view, name, tuple(np.round(poly.bounds, 1)))
+            if key in seen:
+                continue
+            seen.add(key)
+            if not any(g.contains(poly) for g in self.safe(view)):
+                # detal może leżeć w całości poza widocznym obszarem – wtedy go po prostu nie ma
+                vis = [g for g in self.visible_view(view)]
+                if any(g.intersects(poly) for g in vis):
+                    bad.append((view, name, [round(v) for v in poly.bounds]))
+        return bad
+
+    def visible_view(self, view):
+        from fold import apply
+        from model3d import view_affine
+        return [apply(view_affine(p), p.paper) for p in self.pieces if p.view == view]
 
     def find_watermark(self):
         """Szuka miejsca na napis, które po złożeniu będzie całkowicie schowane."""
@@ -86,7 +199,8 @@ class Model:
         from shapely.geometry import box
         from shapely.ops import unary_union
         vis = unary_union([p.paper for p in self.pieces if p.printed]).buffer(7)
-        hidden = box(4, 4, self.W - 4, self.H - 4).difference(vis)
+        paper = unary_union([f.poly for f in self.sheet.facets]).buffer(0.05).buffer(-6)
+        hidden = paper.intersection(box(6, 6, self.W - 6, self.H - 6)).difference(vis)
         best = None
         for size in (4.0, 3.2, 2.6, 2.0):
             w, h = len(self.wm_text) * size * 0.62, size * 1.3
@@ -130,8 +244,9 @@ class Model:
 
 # ----------------------------------------------------------------------
 def text(ctx, t, x, y, size, rgb=(0, 0, 0), bold=True, rot=0.0, align="center", font="DejaVu Sans",
-         alpha=1.0, italic=False):
+         alpha=1.0, italic=False, outline=None):
     """Tekst w układzie y-w-górę (współrzędne widoku)."""
+    import paint
     ctx.save()
     ctx.translate(x, y)
     ctx.rotate(math.radians(rot))
@@ -143,5 +258,14 @@ def text(ctx, t, x, y, size, rgb=(0, 0, 0), bold=True, rot=0.0, align="center", 
     dx = {"center": -ew / 2 - xb, "left": -xb, "right": -ew - xb}[align]
     ctx.move_to(dx, -yb / 2)
     ctx.set_source_rgba(*rgb, alpha)
-    ctx.show_text(t)
+    if outline:
+        ctx.text_path(t)
+        ctx.set_line_width(outline)
+        ctx.set_line_join(cairo.LINE_JOIN_ROUND)
+        ctx.stroke()
+    else:
+        ctx.show_text(t)
+    if paint.REC_ON[0]:
+        ctx.scale(1, -1)
+        paint.feat(ctx, "napis „%s”" % t, dx + xb, -eh / 2, dx + xb + ew, eh / 2)
     ctx.restore()

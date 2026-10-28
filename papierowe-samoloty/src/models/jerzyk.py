@@ -28,57 +28,57 @@ class Jerzyk(Model):
     fly = "Na dworze: rzuć mocno do góry, zakręci i zejdzie długim, spokojnym ślizgiem. W domu – lekko, poziomo."
     difficulty = 2
 
-    def swift(self, ctx, x, y, s, col):
-        """Sylwetka jerzyka (logo)."""
-        from paint import poly
+    def swift(self, ctx, x, y, s, col, stroke=None):
+        """Sylwetka jerzyka (logo fikcyjnej linii)."""
+        from paint import poly, feat
         pts = [(0, 0), (-6, 1.2), (-14, 7), (-9, 1.3), (-16, -1), (-9, -1.5), (-14, -7), (-6, -1.2)]
-        poly(ctx, [(x + px * s, y + py * s) for px, py in pts], col)
+        poly(ctx, [(x + px * s, y + py * s) for px, py in pts], col, stroke=stroke, lw=0.3)
+        feat(ctx, "logo", x - 16 * abs(s), y - 7 * abs(s), x + 1 * abs(s), y + 7 * abs(s))
 
     def art(self, ctx, view, piece):
-        from paint import hx, fill, poly, rect, line, text, circle, lgrad, paint_src
+        from paint import hx, fill, poly, rect, line, circle
         L = self.H - 90
-        navy, red, grey = hx("#14213d"), hx("#e63946"), hx("#dfe3e8")
+        navy, red, grey = hx("#1f3566"), hx("#e2434f"), hx("#9aa4b0")
         if piece.zone == "winglet":
-            fill(ctx, navy)
+            fill(ctx, hx("#ffffff"))
             u = -1 if view == "left" else 1
-            self.swift(ctx, (60 if u > 0 else -45), 52, 1.3 * u, hx("#ffffff"))
-            rect(ctx, -400, 36, 400, 38, red)
+            rect(ctx, -400, 37, 400, 38.6, red)
+            p = self.fit(view, 22, 16, (30 * u, 52))
+            if p:
+                self.swift(ctx, p[0] + 8 * u, p[1], 1.1 * u, hx("#dfe7f5"), stroke=navy)
             return
         if view == "top":
-            fill(ctx, grey)
+            fill(ctx, hx("#eef0f3"))
             for s in (1, -1):
-                # ścieżka chodnika na skrzydle i krawędzie
-                line(ctx, [(20, 8 * s), (80, 8 * s), (80, 30 * s), (20, 30 * s), (20, 8 * s)], hx("#7f8a96"),
-                     lw=0.35, dash=[2, 1.5])
-                line(ctx, [(L + 2, 0), (L - 20, 93 * s)], hx("#b8bec6"), lw=4)
+                line(ctx, [(L - 4, 1 * s), (L - 22, 92 * s)], hx("#c9ced5"), lw=2.5)
+                line(ctx, [(22, 10 * s), (78, 10 * s), (78, 28 * s), (22, 28 * s), (22, 10 * s)], grey, lw=0.3,
+                     dash=[2, 1.5])
                 for k in range(4):
-                    line(ctx, [(4, (25 + 18 * k) * s), (4, (40 + 18 * k) * s)], hx("#8d99a6"), lw=0.35)
-                rect(ctx, -10, min(84 * s, 96 * s), 200, max(84 * s, 96 * s), navy)
-            text(ctx, "JERZYK", 50, 52, 9, rgb=navy)
-            text(ctx, "SP-JRZ", 50, -52, 9, rgb=navy)
-            rect(ctx, -10, -3, 200, 3, hx("#ffffff"))
+                    line(ctx, [(3, (26 + 16 * k) * s), (3, (38 + 16 * k) * s)], grey, lw=0.3)
+                rect(ctx, -10, min(87 * s, 90 * s), 200, max(87 * s, 90 * s), navy)
+            p = self.fit("top", 40, 30, (55, -40))
+            if p:
+                self.swift(ctx, p[0] + 18, p[1], 2.3, hx("#e4e9f2"), stroke=hx("#8fa1c4"))
+            self.label(ctx, "top", "JERZYK", (50, 55), 8, rgb=navy)
+            self.label(ctx, "top", "SP-JRZ", (50, -70), 6, rgb=navy, bold=False)
         elif view == "bottom":
-            fill(ctx, hx("#f4f5f7"))
-            text(ctx, "SP-JRZ", 66, 40, 12, rgb=navy)
-            text(ctx, "JERZYK", 66, -40, 12, rgb=navy)
+            fill(ctx, hx("#f6f7f9"))
+            self.label(ctx, "bottom", "SP-JRZ", (75, 40), 9, rgb=navy, bold=False)
+            self.label(ctx, "bottom", "JERZYK", (75, -40), 9, rgb=navy, bold=False)
             for s in (1, -1):
-                rect(ctx, -10, min(84 * s, 96 * s), 200, max(84 * s, 96 * s), navy)
+                rect(ctx, -10, min(87 * s, 90 * s), 200, max(87 * s, 90 * s), navy)
         else:
             u = -1 if view == "left" else 1
-            X = lambda x: x * u
             fill(ctx, hx("#ffffff"))
-            # granatowy brzuch i czerwona linia
-            rect(ctx, -400, -2, 400, 9, navy)
-            rect(ctx, -400, 9, 400, 11, red)
-            # okna
+            rect(ctx, -400, -2, 400, 5, hx("#dfe6f3"))
+            rect(ctx, -400, 5, 400, 6.4, navy)
+            rect(ctx, -400, 6.4, 400, 7.4, red)
             for k in range(14):
-                x = X(L - 20 - k * 6.2)
+                x = (L - 18 - k * 5.8) * u
                 if k in (0, 9):
-                    rect(ctx, x - 1.6, 13, x + 1.6, 22, hx("#9aa5b1"))
+                    rect(ctx, x - 1.4, 10, x + 1.4, 17.5, hx("#ffffff"))
+                    line(ctx, [(x - 1.4, 10), (x - 1.4, 17.5), (x + 1.4, 17.5), (x + 1.4, 10), (x - 1.4, 10)], grey, lw=0.25)
                     continue
-                circle(ctx, x, 17.5, 1.25, hx("#1d3557"))
-            # kokpit
-            poly(ctx, [(X(L - 2), 16), (X(L - 9), 16), (X(L - 11), 19.5), (X(L - 3), 19.5)], hx("#1d3557"))
-            text(ctx, "JERZYK", X(55), 27, 7, rgb=navy)
-            self.swift(ctx, X(90), 27, 0.75 * u, red)
-            text(ctx, "SP-JRZ", X(22), 13.5, 2.6, rgb=navy, bold=False)
+                circle(ctx, x, 13.5, 1.0, hx("#5d7bb3"))
+            poly(ctx, [((L - 1) * u, 12.5), ((L - 8) * u, 12.5), ((L - 10) * u, 15.5), ((L - 2) * u, 15.5)], hx("#5d7bb3"))
+            self.label(ctx, view, "JERZYK", (50 * u, 22), 5.5, rgb=navy)

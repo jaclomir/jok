@@ -78,6 +78,19 @@ def draw_creases(ctx, model, numbers=True):
         if c.step in model.hide_steps:
             continue
         pts = list(c.seg.coords)
+        if c.kind == "cut":
+            ctx.new_path()
+            ctx.move_to(*pts[0])
+            for q in pts[1:]:
+                ctx.line_to(*q)
+            ctx.set_line_width(0.35)
+            ctx.set_dash([0.5, 1.0])
+            ctx.set_line_cap(cairo.LINE_CAP_ROUND)
+            ctx.set_source_rgba(0.05, 0.05, 0.08, 0.7)
+            ctx.stroke()
+            ctx.set_dash([])
+            ctx.set_line_cap(cairo.LINE_CAP_BUTT)
+            continue
         # podkład jasny, potem ciemne kreski
         ctx.move_to(*pts[0])
         ctx.line_to(*pts[-1])
@@ -181,7 +194,7 @@ def fit(bounds, size, margin):
 
 
 def render_flat(facets, tex, model, size=(520, 520), line=None, extra=(), arrow=None, view=None, margin=24,
-                ss=2):
+                ss=2, cut=None):
     """Schemat stanu płaskiego: ścianki od dołu do góry, strona widoczna z góry."""
     size2 = (size[0] * ss, size[1] * ss)
     canvas = Image.new("RGB", size2, (255, 255, 255))
@@ -212,6 +225,14 @@ def render_flat(facets, tex, model, size=(520, 520), line=None, extra=(), arrow=
             dashed(d, pts[0], pts[-1], col, 3 * ss, 9 * ss, 5 * ss)
     if arrow is not None:
         draw_arrow(d, F, arrow, ss)
+    if cut is not None:
+        edge = cut.boundary.intersection(allg.buffer(0.5))
+        for seg in getattr(edge, "geoms", [edge]):
+            if not hasattr(seg, "coords"):
+                continue
+            pts = [tuple((F @ np.array([x, y, 1]))[:2]) for x, y in seg.coords]
+            for a, b in zip(pts[:-1], pts[1:]):
+                dashed(d, a, b, (220, 30, 40), 3 * ss, 4 * ss, 4 * ss)
     return canvas.resize(size, Image.LANCZOS)
 
 

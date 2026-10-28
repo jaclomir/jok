@@ -60,56 +60,56 @@ class Mops(Model):
 
     # ------------------------------------------------------------------
     tagline = "Tępy nos z zamkiem – stabilny lot w domu"
-    style = "kreskówkowy: mops z czarną mordką"
+    style = "kreskówkowy: mops (jasne tło, mordka i uszy w odcieniach brązu)"
     fly = "Rzucaj delikatnie przed siebie. Ciężki, zablokowany nos daje bardzo stabilny lot w pokoju."
     difficulty = 3
 
     def art(self, ctx, view, piece):
-        from paint import hx, fill, poly, rect, line, text, circle, ellipse, curve
+        from paint import hx, fill, poly, rect, line, circle, ellipse, curve, feat
         L = 138.0
-        fawn, fawn2, dark = hx("#e7c39b"), hx("#d6a874"), hx("#2b2320")
+        fawn, line_c, mask, dark = hx("#faeee0"), hx("#b48a62"), hx("#c7b3a2"), hx("#5a4636")
+        fill(ctx, fawn)
         if piece.zone == "winglet":
-            fill(ctx, dark)  # uszy
+            # uszy: wypełnienie średnim brązem + kontur
+            fill(ctx, hx("#d9c6b4"))
+            for k in range(3):
+                line(ctx, [(-300, 54 + k * 6), (300, 54 + k * 6)], hx("#b39c88"), lw=0.35)
             return
         if view == "top":
-            fill(ctx, fawn)
             for s in (1, -1):
-                # łaty i fałdki
-                ellipse(ctx, 40, 40 * s, 22, 14, fawn2)
+                # fałdki kreską
+                for k in range(3):
+                    curve(ctx, (L - 44 - k * 5, 8 * s), (L - 48 - k * 5, 14 * s), (L - 48 - k * 5, 20 * s),
+                          (L - 44 - k * 5, 26 * s), line_c, lw=0.5)
                 # łapki na tylnej krawędzi
-                for k in range(4):
-                    circle(ctx, 4, (44 + k * 5.5) * s, 2.3, dark)
-                circle(ctx, 9, 50 * s, 4, dark)
+                p = self.fit("top", 14, 14, (9, 48 * s))
+                if p:
+                    x, y = p
+                    circle(ctx, x - 1, y, 3.4, hx("#e9d6c2"), stroke=line_c, lw=0.4)
+                    for k in (-1, 0, 1):
+                        circle(ctx, x + 4.2, y + k * 3.2, 1.3, hx("#e9d6c2"), stroke=line_c, lw=0.3)
+                    feat(ctx, "łapka", x - 5, y - 5, x + 6, y + 5)
                 # uszy przy nosie
-                poly(ctx, [(L - 40, 26 * s), (L - 18, 34 * s), (L - 34, 52 * s)], dark)
-            # czarna mordka
-            ellipse(ctx, L - 6, 0, 26, 24, dark)
-            # oczy
-            for s in (1, -1):
-                circle(ctx, L - 22, 13 * s, 6.5, hx("#ffffff"))
-                circle(ctx, L - 20.5, 13 * s, 4.3, hx("#3b2a1e"))
-                circle(ctx, L - 19.2, 14.2 * s, 1.4, hx("#ffffff"))
-                curve(ctx, (L - 38, 5 * s), (L - 42, 10 * s), (L - 42, 16 * s), (L - 38, 21 * s), dark, lw=0.8)
-            # nosek
-            ellipse(ctx, L - 4, 0, 4, 7, hx("#000000"))
-            # obroża z blaszką
-            rect(ctx, L - 50, -70, L - 44, 70, hx("#e63946"))
-            circle(ctx, L - 47, 0, 4.2, hx("#f2c14e"), stroke=hx("#b8860b"), lw=0.4)
-            text(ctx, "M", L - 47, 0, 4, rgb=hx("#7a5b00"))
+                poly(ctx, [(L - 40, 30 * s), (L - 20, 37 * s), (L - 35, 52 * s)], hx("#d9c6b4"), stroke=hx("#9c8571"), lw=0.4)
+                # oczy – każde na swojej połówce
+                p = self.fit("top", 13, 13, (L - 22, 14 * s))
+                if p:
+                    circle(ctx, p[0], p[1], 5.6, hx("#ffffff"), stroke=dark, lw=0.5)
+                    circle(ctx, p[0] + 1.4, p[1], 3.4, dark)
+                    circle(ctx, p[0] + 2.4, p[1] + 1.0 * s, 1.0, hx("#ffffff"))
+                    feat(ctx, "oko", p[0] - 6, p[1] - 6, p[0] + 6, p[1] + 6)
+            # mordka – jasny brąz z konturem (mało tuszu), nosek ciemny
+            ellipse(ctx, L - 4, 0, 18, 12, mask, stroke=hx("#9c8571"), lw=0.4)
+            ellipse(ctx, L - 3, 0, 3.4, 5.5, dark)
+            # obroża
+            rect(ctx, L - 56, -70, L - 52.5, 70, hx("#e2434f"))
+            ellipse(ctx, L - 54, 0, 3.4, 3.4, hx("#f7d77a"), stroke=hx("#b8860b"), lw=0.3)
             # ogonek-precelek
-            curve(ctx, (2, 0), (14, 10), (20, -6), (8, -4), fawn2, lw=2.4)
+            curve(ctx, (3, 2), (14, 12), (20, -6), (8, -4), line_c, lw=1.0)
         elif view == "bottom":
-            fill(ctx, hx("#f6e6d2"))
-            # język
-            ellipse(ctx, L - 14, 0, 8, 5, hx("#ff7a90"), stroke=hx("#d4506a"), lw=0.4)
-            line(ctx, [(L - 20, 0), (L - 9, 0)], hx("#d4506a"), lw=0.4)
+            ellipse(ctx, L - 15, 0, 7, 4.4, hx("#ffb3c0"), stroke=hx("#d4506a"), lw=0.35)
+            line(ctx, [(L - 20, 0), (L - 10, 0)], hx("#d4506a"), lw=0.35)
         else:
             u = -1 if view == "left" else 1
-            X = lambda x: x * u
-            fill(ctx, fawn)
-            ellipse(ctx, X(L - 8), 10, 18, 16, dark)
-            rect(ctx, min(X(L - 50), X(L - 44)), -5, max(X(L - 50), X(L - 44)), 60, hx("#e63946"))
-            text(ctx, "MOPS", X(60), 12, 9, rgb=hx("#8a5a2b"))
-            for k in range(3):
-                curve(ctx, (X(100 - k * 6), 4), (X(98 - k * 6), 9), (X(98 - k * 6), 13), (X(100 - k * 6), 18),
-                      fawn2, lw=0.8)
+            ellipse(ctx, (L - 6) * u, 9, 12, 10, mask, stroke=hx("#9c8571"), lw=0.4)
+            rect(ctx, min((L - 56) * u, (L - 52.5) * u), -5, max((L - 56) * u, (L - 52.5) * u), 60, hx("#e2434f"))

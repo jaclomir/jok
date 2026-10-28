@@ -31,49 +31,39 @@ class Albatros(Model):
 
     # ------------------------------------------------------------------
     tagline = "Szeroki szybowiec – długi, spokojny lot w domu"
-    style = "realistyczny: biały szybowiec wyczynowy z czerwonymi końcówkami"
+    style = "realistyczny: biały szybowiec z czerwonymi paskami"
     fly = "Wypuszczaj delikatnie, poziomo, z ręki nad głową. Szybuje wolno i długo – idealny do mieszkania."
     difficulty = 2
 
     def art(self, ctx, view, piece):
-        from paint import hx, fill, poly, rect, line, text, ellipse, lgrad, paint_src
+        from paint import hx, fill, poly, rect, line, ellipse
         L = self.H - 68
-        red, navy = hx("#e63946"), hx("#1d3557")
+        red, navy, grey = hx("#e2434f"), hx("#24375e"), hx("#a9b1ba")
+        fill(ctx, hx("#ffffff"))
         if piece.zone == "winglet":
-            fill(ctx, red)
-            u = -1 if view == "left" else 1
             for k in range(3):
-                rect(ctx, -400, 52 + k * 5, 400, 53.5 + k * 5, hx("#ffffff"))
+                rect(ctx, -400, 55 + k * 4.5, 400, 56.6 + k * 4.5, red)
             return
-        if view == "top":
-            fill(ctx, hx("#fbfbf8"))
+        if view in ("top", "bottom"):
             for s in (1, -1):
-                # czerwone końcówki i pasy
-                poly(ctx, [(-10, 72 * s), (200, 72 * s), (200, 100 * s), (-10, 100 * s)], red)
-                rect(ctx, -10, min(66 * s, 69 * s), 200, max(66 * s, 69 * s), red)
-                # linia krawędzi natarcia
-                line(ctx, [(L, 0), (L - 90, 90 * s)], navy, lw=2.2)
-                # lotki i klapy
-                line(ctx, [(4, 20 * s), (4, 64 * s)], hx("#9aa3ab"), lw=0.35)
-                line(ctx, [(4, 20 * s), (12, 20 * s)], hx("#9aa3ab"), lw=0.35)
-                line(ctx, [(4, 42 * s), (12, 42 * s)], hx("#9aa3ab"), lw=0.35)
-            text(ctx, "SP-3415", 40, 40, 11, rgb=navy, rot=0)
-            text(ctx, "SP-3415", 40, -40, 11, rgb=navy, rot=0)
-            # kabina (od góry, przy grzbiecie)
-            ellipse(ctx, L - 20, 0, 18, 4, hx("#457b9d"))
-            ellipse(ctx, L - 16, 1.2, 7, 1.2, hx("#ffffff", 0.6))
-            text(ctx, "ALBATROS", 70, 0, 4.5, rgb=navy, alpha=0.7)
-        elif view == "bottom":
-            fill(ctx, hx("#eef0f1"))
-            for s in (1, -1):
-                poly(ctx, [(-10, 72 * s), (200, 72 * s), (200, 100 * s), (-10, 100 * s)], red)
-            text(ctx, "SP-3415", 60, 38, 13, rgb=navy)
-            text(ctx, "SP-3415", 60, -38, 13, rgb=navy)
+                # trzy cienkie czerwone pasy przy końcach skrzydeł
+                for k in range(3):
+                    y0 = (66 + k * 6) * s
+                    rect(ctx, -10, min(y0, y0 + 2.2 * s), 200, max(y0, y0 + 2.2 * s), red)
+                if view == "top":
+                    line(ctx, [(L - 2, 1 * s), (L - 92, 90 * s)], navy, lw=0.8)
+                    # lotki i klapy
+                    for y in (22, 44, 63):
+                        line(ctx, [(0, y * s), (9, y * s)], grey, lw=0.3)
+                    line(ctx, [(9, 22 * s), (9, 63 * s)], grey, lw=0.3)
+            if view == "top":
+                self.label(ctx, "top", "SP-3415", (48, 40), 10, rgb=navy, bold=False)
+                self.label(ctx, "top", "SP-3415", (48, -40), 10, rgb=navy, bold=False)
+                ellipse(ctx, L - 22, 0, 16, 3.2, hx("#a9c8e0"), stroke=navy, lw=0.3)
+            else:
+                self.label(ctx, "bottom", "SP-3415", (80, 35), 10, rgb=navy, bold=False)
         else:
             u = -1 if view == "left" else 1
-            X = lambda x: x * u
-            paint_src(ctx, lgrad(ctx, 0, 0, 0, 36, [(0, hx("#e9ecef")), (1, hx("#ffffff"))]))
-            poly(ctx, [(X(L + 5), -2), (X(L - 30), -2), (X(L - 30), 40), (X(L + 5), 40)], red)
-            rect(ctx, min(X(10), X(L - 30)), 8, max(X(10), X(L - 30)), 10, navy)
-            text(ctx, "ALBATROS", X(70), 17, 6.5, rgb=navy)
-            text(ctx, "SP-3415", X(40), 4, 3.5, rgb=navy)
+            line(ctx, [(10 * u, 9), ((L - 8) * u, 9)], navy, lw=0.8)
+            poly(ctx, [((L + 4) * u, -2), ((L - 14) * u, -2), ((L - 14) * u, 40), ((L + 4) * u, 40)], hx("#f6c3c7"))
+            self.label(ctx, view, "ALBATROS", (95 * u, 17), 4.5, rgb=navy)

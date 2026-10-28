@@ -23,7 +23,7 @@ from render import MM, paint_sheet, paper_ctx, render_3d, render_flat, sheet_ima
 
 OUT = os.path.join(os.path.dirname(__file__), "..", "wyniki")
 MODELS = [("grot", "Grot"), ("albatros", "Albatros"), ("jerzyk", "Jerzyk"), ("kaczka", "Kaczka"),
-          ("mops", "Mops"), ("trzmiel", "Trzmiel")]
+          ("mops", "Mops"), ("wazka", "Wazka")]
 ACCENT = (0.10, 0.16, 0.30)
 FONT = "DejaVu Sans"
 
@@ -90,6 +90,8 @@ def step_images(M, tex, px=420):
             im = render_flat(st.state, tex, M, size=(px, px))
             d = ImageDraw.Draw(im)
             draw_flip_icon(d, px)
+        elif st.line is None:
+            im = render_flat(st.state, tex, M, size=(px, px), cut=st.extra[0])
         else:
             arrow = None
             allg = unary_union([f.flat for f in st.state])
@@ -272,12 +274,21 @@ def build(slug, cls):
     s1 = cairo.PDFSurface(os.path.join(od, f"{slug}-tylko-wydruk.pdf"), M.W * MM, M.H * MM)
     paint_sheet(paper_ctx(s1, M.W, M.H, MM), M, M.pieces)
     s1.finish()
+    from views import ink
+    mean, mx, frac = ink(M)
+    bad = M.check_features()
+    for b in bad:
+        print("  UWAGA – ucięty detal:", b, file=sys.stderr)
+    if mean > 0.15 or mx > 0.5:
+        print(f"  UWAGA – dużo tuszu: średnio {mean:.2f}, lokalnie {mx:.2f}", file=sys.stderr)
     stats = {
         "slug": slug, "nazwa": M.name, "opis": M.tagline, "styl": M.style, "trudnosc": M.difficulty,
         "orientacja": "pozioma" if M.W > M.H else "pionowa",
         "widoczny_nadruk_proc": round(100 * sum(p.paper.area for p in M.pieces if p.printed) /
                                       sum(p.paper.area for p in M.pieces)),
         "kroki": len(M.sheet.steps) + len(M.final_steps),
+        "tusz_srednio_proc": round(100 * mean),
+        "tusz_max_30mm_proc": round(100 * mx),
     }
     print(json.dumps(stats, ensure_ascii=False))
     return M, stats

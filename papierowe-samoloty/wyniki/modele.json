@@ -3,21 +3,25 @@
     "slug": "grot",
     "nazwa": "Grot",
     "opis": "Klasyczna strzała – szybka i prosta",
-    "styl": "realistyczny: myśliwiec w szarym kamuflażu",
+    "styl": "realistyczny: jasnoszary myśliwiec z szachownicą",
     "trudnosc": 1,
     "orientacja": "pionowa",
     "widoczny_nadruk_proc": 65,
-    "kroki": 8
+    "kroki": 8,
+    "tusz_srednio_proc": 13,
+    "tusz_max_30mm_proc": 35
   },
   {
     "slug": "albatros",
     "nazwa": "Albatros",
     "opis": "Szeroki szybowiec – długi, spokojny lot w domu",
-    "styl": "realistyczny: biały szybowiec wyczynowy z czerwonymi końcówkami",
+    "styl": "realistyczny: biały szybowiec z czerwonymi paskami",
     "trudnosc": 2,
     "orientacja": "pozioma",
     "widoczny_nadruk_proc": 72,
-    "kroki": 10
+    "kroki": 10,
+    "tusz_srednio_proc": 7,
+    "tusz_max_30mm_proc": 45
   },
   {
     "slug": "jerzyk",
@@ -27,36 +31,44 @@
     "trudnosc": 2,
     "orientacja": "pozioma",
     "widoczny_nadruk_proc": 75,
-    "kroki": 10
+    "kroki": 10,
+    "tusz_srednio_proc": 7,
+    "tusz_max_30mm_proc": 32
   },
   {
     "slug": "kaczka",
     "nazwa": "Kaczka",
     "opis": "Kaczka z przednimi skrzydełkami – stabilna i zabawna",
-    "styl": "kreskówkowy: żółte kaczątko",
+    "styl": "kreskówkowy: żółte kaczątko (jasne tło, rysunek kreską)",
     "trudnosc": 3,
     "orientacja": "pionowa",
     "widoczny_nadruk_proc": 70,
-    "kroki": 10
+    "kroki": 10,
+    "tusz_srednio_proc": 14,
+    "tusz_max_30mm_proc": 39
   },
   {
     "slug": "mops",
     "nazwa": "Mops",
     "opis": "Tępy nos z zamkiem – stabilny lot w domu",
-    "styl": "kreskówkowy: mops z czarną mordką",
+    "styl": "kreskówkowy: mops (jasne tło, mordka i uszy w odcieniach brązu)",
     "trudnosc": 3,
     "orientacja": "pionowa",
     "widoczny_nadruk_proc": 52,
-    "kroki": 10
+    "kroki": 10,
+    "tusz_srednio_proc": 13,
+    "tusz_max_30mm_proc": 37
   },
   {
-    "slug": "trzmiel",
-    "nazwa": "Trzmiel",
-    "opis": "Krępy trapez z wielkimi wingletami",
-    "styl": "kreskówkowy: puchaty trzmiel",
-    "trudnosc": 3,
-    "orientacja": "pionowa",
-    "widoczny_nadruk_proc": 54,
-    "kroki": 10
+    "slug": "wazka",
+    "nazwa": "Ważka",
+    "opis": "Dwie pary skrzydeł – zwinna i wesoła akrobatka",
+    "styl": "realistyczny: ważka o przezroczystych skrzydłach z żyłkowaniem",
+    "trudnosc": 2,
+    "orientacja": "pozioma",
+    "widoczny_nadruk_proc": 53,
+    "kroki": 7,
+    "tusz_srednio_proc": 7,
+    "tusz_max_30mm_proc": 22
   }
 ]
