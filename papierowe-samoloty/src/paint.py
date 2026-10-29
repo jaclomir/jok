@@ -290,3 +290,65 @@ def offset_line(pts, off):
         L = math.hypot(dx, dy) or 1
         out.append((x - dy / L * off, y + dx / L * off))
     return out
+
+
+_CAMO = {}
+
+
+def digital_camo(bbox, cell=3.0, seed=1, fracs=(0.42, 0.22, 0.14, 0.08), scale=7.0):
+    """Cyfrowy kamuflaż: piksele `cell` mm pogrupowane w plamy (szum o skali `scale` komórek).
+    Zwraca listę wielokątów dla kolejnych poziomów (od najjaśniejszego), każdy poziom to
+    sklejone komórki, żeby rysować kilka kształtów zamiast tysięcy kwadratów."""
+    import numpy as np
+    from shapely.geometry import box
+    from shapely.ops import unary_union
+    key = (tuple(round(v, 1) for v in bbox), cell, seed, fracs, scale)
+    if key in _CAMO:
+        return _CAMO[key]
+    x0, y0, x1, y1 = bbox
+    nx, ny = int((x1 - x0) / cell) + 2, int((y1 - y0) / cell) + 2
+    rnd = np.random.default_rng(seed)
+    # gładki szum: losowa siatka zgrubna, interpolowana dwuliniowo, plus drobny szum na brzegach plam
+    def smooth(sc):
+        gx, gy = int(nx / sc) + 3, int(ny / sc) + 3
+        g = rnd.random((gy, gx))
+        xs = np.arange(nx) / sc
+        ys = np.arange(ny) / sc
+        xi, yi = np.floor(xs).astype(int), np.floor(ys).astype(int)
+        fx, fy = xs - xi, ys - yi
+        a = g[yi][:, xi]
+        b = g[yi][:, xi + 1]
+        c = g[yi + 1][:, xi]
+        d = g[yi + 1][:, xi + 1]
+        fx, fy = fx[None, :], fy[:, None]
+        return a * (1 - fx) * (1 - fy) + b * fx * (1 - fy) + c * (1 - fx) * fy + d * fx * fy
+    out = []
+    for lvl, frac in enumerate(fracs):
+        v = 0.65 * smooth(scale) + 0.25 * smooth(scale / 2.5) + 0.10 * rnd.random((ny, nx))
+        thr = np.quantile(v, 1 - frac)
+        cells = [box(x0 + i * cell, y0 + j * cell, x0 + (i + 1) * cell, y0 + (j + 1) * cell)
+                 for j in range(ny) for i in range(nx) if v[j, i] >= thr]
+        out.append(unary_union(cells) if cells else None)
+    _CAMO[key] = out
+    return out
+
+
+def fill_geom(ctx, g, col):
+    """Wypełnia geometrię shapely (wielokąty z dziurami)."""
+    if g is None or g.is_empty:
+        return
+    from shapely.geometry.polygon import orient
+    ctx.new_path()
+    geoms = getattr(g, "geoms", [g])
+    for p in geoms:
+        if not hasattr(p, "exterior"):
+            continue
+        p = orient(p, 1.0)  # dziury w przeciwnym kierunku – wypełnienie „nonzero” je zostawia
+        for ring in [p.exterior, *p.interiors]:
+            pts = list(ring.coords)
+            ctx.move_to(*pts[0])
+            for q in pts[1:]:
+                ctx.line_to(*q)
+            ctx.close_path()
+    setc(ctx, col)
+    ctx.fill()

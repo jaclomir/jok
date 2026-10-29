@@ -107,7 +107,8 @@ def draw_creases(ctx, model, numbers=True):
             ctx.set_dash([3.0, 1.6])
         else:
             ctx.set_dash([3.0, 1.0, 0.5, 1.0])
-        ctx.set_source_rgba(0.05, 0.05, 0.08, 0.5)
+        import paint
+        paint.setc(ctx, model.c(0.45, alpha=0.6) if hasattr(model, "c") else (0.05, 0.05, 0.08, 0.5))
         ctx.stroke()
     ctx.set_dash([])
     if numbers:

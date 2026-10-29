@@ -3,13 +3,13 @@
     "slug": "grot",
     "nazwa": "Grot",
     "opis": "Klasyczna strzała – szybka i prosta",
-    "styl": "realistyczny: pokazowy myśliwiec z biało-czerwoną wstęgą",
+    "styl": "realistyczny: myśliwiec w cyfrowym kamuflażu",
     "trudnosc": 1,
     "orientacja": "pionowa",
     "widoczny_nadruk_proc": 65,
     "kroki": 8,
-    "tusz_srednio_proc": 25,
-    "tusz_max_30mm_proc": 69
+    "tusz_srednio_proc": 32,
+    "tusz_max_30mm_proc": 79
   },
   {
     "slug": "albatros",
