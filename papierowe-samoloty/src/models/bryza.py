@@ -60,57 +60,44 @@ class Bryza(Model):
 
     # ------------------------------------------------------------------
     tagline = "Tępy nos z zamkiem – stabilny lot w domu"
-    style = "realistyczny: dwusilnikowy samolot ratowniczy z pasami ostrzegawczymi"
+    style = "realistyczny: samolot akrobacyjny w klasyczne promienie"
     fly = "Rzucaj delikatnie przed siebie. Ciężki, zablokowany nos daje bardzo stabilny lot w pokoju."
     difficulty = 3
-    inks = {"main": "#e0542a"}
+    inks = {"main": "#1d8fa8"}
 
     def art(self, ctx, view, piece):
-        from paint import hx, fill, poly, rect, line, circle, Dots
+        import math
+        from paint import hx, fill, poly, rect, line, ellipse, Dots
         L = 138.0
-        grey, dark, white = hx("#8d97a2"), hx("#2b3036"), hx("#ffffff")
-        fill(ctx, white)
+        white, navy, red = hx("#ffffff"), hx("#22324f"), hx("#e2434f")
         if piece.zone == "winglet":
-            fill(ctx, self.dots(0.4))
-            for k in range(3):
-                line(ctx, [(-300, 48 + k * 7), (300, 48 + k * 7)], white, lw=2.2)
+            fill(ctx, Dots(navy, 0.5))
+            line(ctx, [(-300, 40), (300, 40)], white, lw=1.2)
             return
-        if view == "top":
+        if view in ("top", "bottom"):
+            top = view == "top"
+            fill(ctx, white)
+            cov = 0.55 if top else 0.4
+            cx = L - 6
             for s in (1, -1):
-                # końcówki skrzydeł w ukośne pasy ostrzegawcze
-                ctx.save()
-                ctx.rectangle(-10, min(56 * s, 80 * s), 210, 24)
-                ctx.clip()
-                fill(ctx, self.dots(0.62))
-                for k in range(-6, 30):
-                    x = k * 9
-                    poly(ctx, [(x, 50 * s), (x + 4, 50 * s), (x + 4 + 26, 86 * s), (x + 26, 86 * s)], white)
-                ctx.restore()
-                line(ctx, [(-10, 56 * s), (200, 56 * s)], self.c(0.2), lw=0.6)
-                # gondole silników ze śmigłami
-                p = self.fit("top", 46, 28, (L - 30, 30 * s))
-                if p:
-                    ctx.save()
-                    ctx.translate(p[0] + 22 - L, 0)
-                    y = p[1]
-                    poly(ctx, [(L - 52, y - 4.5), (L - 18, y - 5), (L - 12, y), (L - 18, y + 5), (L - 52, y + 4.5)],
-                         Dots(grey, 0.35), stroke=dark, lw=0.35)
-                    line(ctx, [(L - 30, y - 5), (L - 30, y + 5)], self.c(), lw=1.0)
-                    circle(ctx, L - 10, y, 2.2, self.c(0.2))
-                    line(ctx, [(L - 9, y - 13), (L - 9, y + 13)], dark, lw=0.6)
-                    ctx.restore()
-                line(ctx, [(9, 4 * s), (9, 54 * s)], grey, lw=0.3)
-                for yy in (4, 28, 54):
-                    line(ctx, [(0, yy * s), (9, yy * s)], grey, lw=0.3)
-            # pas na grzbiecie, okna kabiny, nos
-            rect(ctx, -10, -3, L - 14, 3, self.dots(0.6))
-            poly(ctx, [(L - 13, -6), (L - 4, -5), (L - 4, 5), (L - 13, 6)], Dots(hx("#2f6aa8"), 0.5), stroke=dark, lw=0.3)
-        elif view == "bottom":
-            fill(ctx, Dots(grey, 0.06))
-            rect(ctx, L - 50, -40, L - 46, 40, self.c())
+                # promienie od nosa przez całe skrzydło, na przemian kolor / biel
+                n = 9
+                a0, a1 = math.radians(180), math.radians(180 - 62 * s)
+                for k in range(0, n, 2):
+                    pa = a0 + (a1 - a0) * k / n
+                    pb = a0 + (a1 - a0) * (k + 1) / n
+                    poly(ctx, [(cx, 0), (cx + 300 * math.cos(pa), 300 * math.sin(pa) * -1 * -1),
+                               (cx + 300 * math.cos(pb), 300 * math.sin(pb))], self.dots(cov))
+                # granatowe końcówki skrzydeł z czerwoną linią
+                poly(ctx, [(-10, 80 * s), (L + 10, 80 * s), (L + 10, 110 * s), (-10, 110 * s)], Dots(navy, cov))
+                line(ctx, [(-10, 78.5 * s), (L + 10, 78.5 * s)], red, lw=1.0)
+            # granatowa krawędź natarcia z czerwoną linią
+            rect(ctx, L - 7, -110, L + 10, 110, Dots(navy, cov))
+            line(ctx, [(L - 8.5, -110), (L - 8.5, 110)], red, lw=0.9)
         else:
             u = -1 if view == "left" else 1
-            rect(ctx, -300, 1, 300, 4, self.dots(0.42))
-            rect(ctx, min((L - 50) * u, (L - 46) * u), -5, max((L - 50) * u, (L - 46) * u), 60, self.c())
-            for k in range(4):
-                circle(ctx, (L - 18 - k * 7) * u, 12, 1.3, Dots(hx("#2f6aa8"), 0.5))
+            fill(ctx, white)
+            for k in range(5):
+                x = (L - 20 - k * 22) * u
+                poly(ctx, [(x, -5), (x - 9 * u, -5), (x - 20 * u, 60), (x - 11 * u, 60)], self.dots(0.5))
+            rect(ctx, -300, 14, 300, 15.2, red)

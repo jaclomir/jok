@@ -24,7 +24,7 @@ class Jerzyk(Model):
 
     # ------------------------------------------------------------------
     tagline = "Szybowiec z ciężkim nosem – do latania na dworze"
-    style = "realistyczny: liniowiec z łukiem barw na skrzydłach"
+    style = "realistyczny: liniowiec z białym jerzykiem na skrzydłach"
     fly = "Na dworze: rzuć mocno do góry, zakręci i zejdzie długim, spokojnym ślizgiem. W domu – lekko, poziomo."
     difficulty = 2
     inks = {"main": "#1f3566"}
@@ -37,39 +37,37 @@ class Jerzyk(Model):
         feat(ctx, "logo", x - 16 * abs(s), y - 7 * abs(s), x + 1 * abs(s), y + 7 * abs(s))
 
     def art(self, ctx, view, piece):
-        from paint import hx, fill, poly, rect, line, circle, band, bez_pts
+        from paint import hx, fill, poly, rect, line, circle, band, bez_pts, Dots
         L = self.H - 90
-        red, grey = hx("#e2434f"), hx("#9aa4b0")
+        red, grey, white = hx("#e2434f"), hx("#9aa4b0"), hx("#ffffff")
         if piece.zone == "winglet":
-            fill(ctx, self.dots(0.12))
+            fill(ctx, self.dots(0.6))
             u = -1 if view == "left" else 1
-            rect(ctx, -400, 34, 400, 40, self.dots(0.6))
-            rect(ctx, -400, 40, 400, 41.2, red)
             p = self.fit(view, 22, 16, (30 * u, 54))
             if p:
-                self.swift(ctx, p[0] + 8 * u, p[1], 1.1 * u, hx("#ffffff"), stroke=self.c())
+                self.swift(ctx, p[0] + 8 * u, p[1], 1.1 * u, white)
             return
         if view in ("top", "bottom"):
-            fill(ctx, self.dots(0.06 if view == "top" else 0.03))
+            top = view == "top"
+            fill(ctx, self.dots(0.05 if top else 0.03))
             for s in (1, -1):
-                # łuk barw linii przechodzący w końcówkę skrzydła
-                a = bez_pts((-10, 58 * s), (40, 60 * s), (80, 72 * s), (120, 96 * s), 40)
-                poly(ctx, band(a, 10, 16), self.dots(0.55 if view == "top" else 0.4))
-                b = bez_pts((-10, 50 * s), (40, 52 * s), (85, 66 * s), (125, 92 * s), 40)
-                poly(ctx, band(b, 1.6), red)
-                rect(ctx, -10, min(84 * s, 100 * s), 200, max(84 * s, 100 * s), self.dots(0.55 if view == "top" else 0.4))
-                if view == "top":
+                # zewnętrzna część skrzydła w kolorze linii, zakończona czerwoną linią
+                a = bez_pts((-10, 40 * s), (40, 42 * s), (85, 52 * s), (130, 70 * s), 40)
+                poly(ctx, [(-10, 120 * s), (-10, 40 * s)] + a + [(130, 120 * s)], self.dots(0.6 if top else 0.42))
+                poly(ctx, band(bez_pts((-10, 37 * s), (40, 39 * s), (85, 49 * s), (130, 67 * s), 40), 1.8), red)
+                # duży biały jerzyk na kolorowej części skrzydła
+                p = self.fit(view, 46, 39, (35, 70 * s))
+                if p:
+                    self.swift(ctx, p[0] + 21.5, p[1], 2.6, white)
+                if top:
                     line(ctx, [(L - 4, 1 * s), (L - 22, 92 * s)], hx("#ffffff"), lw=2.5)
-                    line(ctx, [(L - 10, 12 * s), (L - 26, 86 * s)], grey, lw=0.25)
-                    line(ctx, [(10, 6 * s), (10, 46 * s)], grey, lw=0.3)
-                    for y in (6, 26, 46):
+                    line(ctx, [(10, 6 * s), (10, 36 * s)], grey, lw=0.3)
+                    for y in (6, 20, 36):
                         line(ctx, [(0, y * s), (10, y * s)], grey, lw=0.3)
-                    for y in (16, 34):
-                        line(ctx, [(10, y * s), (22, y * s)], grey, lw=0.6)
         else:
             u = -1 if view == "left" else 1
-            fill(ctx, hx("#ffffff"))
-            rect(ctx, -400, -2, 400, 5, self.dots(0.35))
+            fill(ctx, white)
+            rect(ctx, -400, -2, 400, 5, self.dots(0.45))
             rect(ctx, -400, 5, 400, 6.4, self.c())
             rect(ctx, -400, 6.4, 400, 7.4, red)
             for k in range(14):

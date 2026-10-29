@@ -36,62 +36,42 @@ class Sokol(Model):
 
     # ------------------------------------------------------------------
     tagline = "Odrzutowiec z przednimi skrzydełkami – stabilny i długo leci"
-    style = "realistyczny: myśliwiec w tygrysim malowaniu pokazowym"
+    style = "realistyczny: myśliwiec w zielonym cyfrowym kamuflażu"
     fly = "Rzucaj średnio mocno, poziomo. Przednie skrzydełka stabilizują lot – płynie długo i prosto."
     difficulty = 3
-    inks = {"main": "#ef7d1a"}
+    inks = {"main": "#4d7a35"}
 
-    def stripes(self, ctx, s, x0, x1, ymax, seed, col):
-        """Tygrysie pręgi: zwężające się klinowate pasy od krawędzi spływu do przodu."""
-        import random
-        from paint import poly, bez_pts
-        rnd = random.Random(seed)
-        y = 6
-        while y < ymax:
-            w = rnd.uniform(3.0, 5.0)
-            ln = rnd.uniform(28, 55)
-            bend = rnd.uniform(-6, 6)
-            xa = x0 + rnd.uniform(-4, 10)
-            top = bez_pts((xa, y), (xa + ln * 0.4, y + bend), (xa + ln * 0.7, y + bend * 0.6 + w * 0.3), (xa + ln, y + w * 0.4), 16)
-            bot = bez_pts((xa + ln, y + w * 0.4), (xa + ln * 0.7, y + w * 0.9), (xa + ln * 0.4, y + w + bend), (xa, y + w), 16)
-            poly(ctx, [(px, py * s) for px, py in top + bot], col)
-            y += w + rnd.uniform(4.5, 8.0)
+    def camo(self, ctx, bbox, seed):
+        from paint import digital_camo, fill_geom
+        lv = digital_camo(bbox, cell=3.0, seed=seed, fracs=(0.45, 0.25, 0.14, 0.07))
+        tones = [self.dots(0.2), self.dots(0.42), self.dots(0.48, k=0.45), self.dots(0.55, k=0.75)]
+        for g, t in zip(lv, tones):
+            fill_geom(ctx, g, t)
 
     def art(self, ctx, view, piece):
         from paint import hx, fill, poly, line, ellipse, Dots
         L = 192.0
-        black = Dots(hx("#1d1a18"), 0.62)
         white = hx("#ffffff")
+        sand = hx("#c9b37a")
         if piece.zone == "winglet":
-            fill(ctx, self.dots(0.42))
-            for k in range(3):
-                poly(ctx, [(-300, 4 + k * 6), (300, 6 + k * 6), (300, 8 + k * 6), (-300, 6.5 + k * 6)], black)
+            fill(ctx, self.dots(0.5, k=0.5))
             return
         if view == "top":
-            fill(ctx, self.dots(0.34))
+            fill(ctx, Dots(sand, 0.18))
+            self.camo(ctx, (-10, -70, 200, 70), 21)
             for s in (1, -1):
-                self.stripes(ctx, s, 0, 0, 66, 11, black)
-                self.stripes(ctx, s, 70, 0, 36, 23, black)
-                # przednie skrzydełka: biel z czarną krawędzią
-                poly(ctx, [(L - 75, 22 * s), (L - 40, 22 * s), (L - 70, 60 * s), (L - 95, 60 * s)], white,
-                     stroke=hx("#1d1a18"), lw=0.5)
-                for k in range(2):
-                    line(ctx, [(L - 84 + k * 8, 50 * s), (L - 66 + k * 8, 30 * s)], self.c(), lw=1.6)
-                line(ctx, [(L - 30, 4 * s), (2, 70 * s)], white, lw=0.7)
-            # grzbiet: czarny pas z kabiną, nos w kolorze
-            poly(ctx, [(L - 120, -3), (L - 22, -3.5), (L - 22, 3.5), (L - 120, 3)], black)
-            ellipse(ctx, L - 50, 0, 16, 3, Dots(hx("#5aa0d8"), 0.5), stroke=white, lw=0.4)
+                # przednie skrzydełka: ciemne z białą krawędzią
+                poly(ctx, [(L - 75, 22 * s), (L - 40, 22 * s), (L - 70, 60 * s), (L - 95, 60 * s)], self.dots(0.6, k=0.6),
+                     stroke=white, lw=0.6)
+                line(ctx, [(L - 30, 4 * s), (2, 70 * s)], white, lw=0.6)
+            poly(ctx, [(L - 120, -3), (L - 22, -3.5), (L - 22, 3.5), (L - 120, 3)], self.dots(0.6, k=0.7))
+            ellipse(ctx, L - 50, 0, 16, 3, Dots(hx("#e8b04a"), 0.55), stroke=white, lw=0.4)
             ellipse(ctx, L - 46, 0.8, 6, 0.8, white)
-            poly(ctx, [(L - 22, -7), (L + 6, 0), (L - 22, 7)], self.dots(0.5, k=0.25))
+            poly(ctx, [(L - 22, -7), (L + 6, 0), (L - 22, 7)], self.dots(0.6, k=0.7))
         elif view == "bottom":
-            fill(ctx, self.dots(0.08))
-            for s in (1, -1):
-                self.stripes(ctx, s, 60, 0, 40, 5, Dots(hx("#1d1a18"), 0.35))
-            poly(ctx, [(95, -2), (150, -2), (158, 0), (150, 2), (95, 2)], white, stroke=hx("#1d1a18"), lw=0.3)
-            poly(ctx, [(L - 22, -6), (L + 6, 0), (L - 22, 6)], self.dots(0.4))
+            fill(ctx, Dots(sand, 0.12))
+            self.camo(ctx, (-10, -70, 200, 70), 33)
+            poly(ctx, [(95, -2), (150, -2), (158, 0), (150, 2), (95, 2)], white, stroke=self.c(0.6), lw=0.3)
         else:
-            u = -1 if view == "left" else 1
-            fill(ctx, self.dots(0.4))
-            for k in range(6):
-                x = (70 + k * 17) * u
-                poly(ctx, [(x, -2), (x + 4 * u, -2), (x + 10 * u, 14), (x + 7 * u, 14)], black)
+            fill(ctx, Dots(sand, 0.18))
+            self.camo(ctx, (-300, -10, 300, 60), 41)

@@ -352,3 +352,32 @@ def fill_geom(ctx, g, col):
             ctx.close_path()
     setc(ctx, col)
     ctx.fill()
+
+
+_SPL = {}
+
+
+def splinter_camo(bbox, n=60, seed=1, levels=4, stretch=(1.0, 1.0), angle=0.0):
+    """Kanciasty kamuflaż „splinter”: komórki Woronoja z losowych punktów, każda z losowym tonem.
+    Zwraca listę geometrii dla tonów 0..levels-1 (sklejone komórki)."""
+    import numpy as np
+    from shapely import affinity
+    from shapely.geometry import MultiPoint, box
+    from shapely.ops import unary_union, voronoi_diagram
+    key = (tuple(round(v, 1) for v in bbox), n, seed, levels, stretch, angle)
+    if key in _SPL:
+        return _SPL[key]
+    rnd = np.random.default_rng(seed)
+    x0, y0, x1, y1 = bbox
+    pts = np.column_stack([rnd.uniform(x0, x1, n), rnd.uniform(y0, y1, n)])
+    frame = box(x0 - 20, y0 - 20, x1 + 20, y1 + 20)
+    cells = voronoi_diagram(MultiPoint([tuple(p) for p in pts]), envelope=frame)
+    groups = [[] for _ in range(levels)]
+    for i, c in enumerate(cells.geoms):
+        c = c.intersection(frame)
+        c = affinity.scale(c, stretch[0], stretch[1], origin=((x0 + x1) / 2, (y0 + y1) / 2))
+        c = affinity.rotate(c, angle, origin=((x0 + x1) / 2, (y0 + y1) / 2))
+        groups[int(rnd.integers(levels))].append(c)
+    out = [unary_union(g) if g else None for g in groups]
+    _SPL[key] = out
+    return out

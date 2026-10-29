@@ -3,72 +3,72 @@
     "slug": "grot",
     "nazwa": "Grot",
     "opis": "Klasyczna strzała – szybka i prosta",
-    "styl": "realistyczny: myśliwiec w cyfrowym kamuflażu",
+    "styl": "realistyczny: pokazowy myśliwiec z biało-czerwoną wstęgą",
     "trudnosc": 1,
     "orientacja": "pionowa",
     "widoczny_nadruk_proc": 65,
     "kroki": 8,
-    "tusz_srednio_proc": 32,
-    "tusz_max_30mm_proc": 79
+    "tusz_srednio_proc": 25,
+    "tusz_max_30mm_proc": 69
   },
   {
     "slug": "albatros",
     "nazwa": "Albatros",
     "opis": "Szeroki szybowiec – długi, spokojny lot w domu",
-    "styl": "realistyczny: biały szybowiec wyczynowy z kolorowymi łukami",
+    "styl": "realistyczny: szybowiec pokazowy z jodełkami na skrzydłach",
     "trudnosc": 2,
     "orientacja": "pozioma",
     "widoczny_nadruk_proc": 72,
     "kroki": 10,
-    "tusz_srednio_proc": 9,
-    "tusz_max_30mm_proc": 55
+    "tusz_srednio_proc": 16,
+    "tusz_max_30mm_proc": 72
   },
   {
     "slug": "jerzyk",
     "nazwa": "Jerzyk",
     "opis": "Szybowiec z ciężkim nosem – do latania na dworze",
-    "styl": "realistyczny: liniowiec z łukiem barw na skrzydłach",
+    "styl": "realistyczny: liniowiec z białym jerzykiem na skrzydłach",
     "trudnosc": 2,
     "orientacja": "pozioma",
     "widoczny_nadruk_proc": 75,
     "kroki": 10,
-    "tusz_srednio_proc": 14,
-    "tusz_max_30mm_proc": 59
+    "tusz_srednio_proc": 22,
+    "tusz_max_30mm_proc": 82
   },
   {
     "slug": "sokol",
     "nazwa": "Sokół",
     "opis": "Odrzutowiec z przednimi skrzydełkami – stabilny i długo leci",
-    "styl": "realistyczny: myśliwiec w tygrysim malowaniu pokazowym",
+    "styl": "realistyczny: myśliwiec w zielonym cyfrowym kamuflażu",
     "trudnosc": 3,
     "orientacja": "pionowa",
     "widoczny_nadruk_proc": 70,
     "kroki": 10,
-    "tusz_srednio_proc": 31,
-    "tusz_max_30mm_proc": 82
+    "tusz_srednio_proc": 25,
+    "tusz_max_30mm_proc": 71
   },
   {
     "slug": "iskra",
     "nazwa": "Iskra",
     "opis": "Szeroka delta – złożysz ją w minutę",
-    "styl": "realistyczny: samolot akrobacyjny z promieniami od nosa",
+    "styl": "realistyczny: myśliwiec-agresor w kanciastym kamuflażu",
     "trudnosc": 1,
     "orientacja": "pozioma",
     "widoczny_nadruk_proc": 89,
     "kroki": 9,
-    "tusz_srednio_proc": 20,
-    "tusz_max_30mm_proc": 63
+    "tusz_srednio_proc": 32,
+    "tusz_max_30mm_proc": 78
   },
   {
     "slug": "bryza",
     "nazwa": "Bryza",
     "opis": "Tępy nos z zamkiem – stabilny lot w domu",
-    "styl": "realistyczny: dwusilnikowy samolot ratowniczy z pasami ostrzegawczymi",
+    "styl": "realistyczny: samolot akrobacyjny w klasyczne promienie",
     "trudnosc": 3,
     "orientacja": "pionowa",
     "widoczny_nadruk_proc": 52,
     "kroki": 10,
-    "tusz_srednio_proc": 10,
-    "tusz_max_30mm_proc": 48
+    "tusz_srednio_proc": 14,
+    "tusz_max_30mm_proc": 57
   }
 ]

@@ -31,42 +31,35 @@ class Iskra(Model):
 
     # ------------------------------------------------------------------
     tagline = "Szeroka delta – złożysz ją w minutę"
-    style = "realistyczny: samolot akrobacyjny z promieniami od nosa"
+    style = "realistyczny: myśliwiec-agresor w kanciastym kamuflażu"
     fly = "Rzucaj płasko i średnio mocno. Leci szybko i prosto; podegnij tylne krawędzie, jeśli nurkuje."
     difficulty = 1
-    inks = {"main": "#d62f3d"}
+    inks = {"main": "#a9773a"}
 
     def art(self, ctx, view, piece):
-        import math
-        from paint import hx, fill, poly, line, ellipse, checker, Dots
+        from paint import hx, fill, poly, line, ellipse, checker, splinter_camo, fill_geom, Dots
         L = self.H - self.NOS
         white = hx("#ffffff")
-        fill(ctx, white)
         if piece.zone == "winglet":
-            fill(ctx, self.dots(0.5))
+            fill(ctx, self.dots(0.55, k=0.5))
             return
+        tones = [self.dots(0.12), self.dots(0.34), self.dots(0.5, k=0.35), self.dots(0.55, k=0.7)]
         if view in ("top", "bottom"):
-            cov = 0.62 if view == "top" else 0.4
-            # promienie z punktu przed nosem, na przemian kolor i biel
-            ox, oy = L + 40, 0
+            fill(ctx, tones[0])
+            lv = splinter_camo((-10, -90, 200, 90), n=46, seed=5 if view == "top" else 9, angle=-25)
+            for g, t in zip(lv[1:], tones[1:]):
+                fill_geom(ctx, g, t)
             for s in (1, -1):
-                for k in range(5):
-                    a0 = math.radians(158 + k * 5.2)
-                    a1 = math.radians(158 + k * 5.2 + 2.9)
-                    R = 400
-                    poly(ctx, [(ox, oy), (ox + R * math.cos(a0), oy + s * R * math.sin(a0)),
-                               (ox + R * math.cos(a1), oy + s * R * math.sin(a1))], self.dots(cov))
-                # końcówki skrzydeł
-                poly(ctx, [(-10, 64 * s), (60, 64 * s), (60, 100 * s), (-10, 100 * s)], self.dots(cov))
-                line(ctx, [(-10, 64 * s), (60, 64 * s)], self.c(0.1), lw=0.6)
-                p = self.fit(view, 15, 15, (95, 26 * s))
+                p = self.fit(view, 15, 15, (70, 28 * s))
                 if p:
-                    checker(ctx, p[0], p[1], 12 if view == "top" else 10)
-            poly(ctx, [(L - 24, -6.5), (L + 6, 0), (L - 24, 6.5)], self.dots(0.55, k=0.2))
+                    checker(ctx, p[0], p[1], 12)
+                line(ctx, [(L - 2, 0.6 * s), (12, 75 * s)], white, lw=0.9)
+            # ciemny nos i kabina
+            poly(ctx, [(L - 40, -5), (L + 6, 0), (L - 40, 5)], tones[3])
             if view == "top":
-                ellipse(ctx, L - 46, 0, 16, 3.2, Dots(hx("#2f6aa8"), 0.45), stroke=hx("#3b4552"), lw=0.3)
-                ellipse(ctx, L - 42, 0.8, 6, 0.8, white)
+                ellipse(ctx, L - 56, 0, 15, 3.1, Dots(hx("#9fd2f5"), 0.55), stroke=white, lw=0.4)
         else:
-            u = -1 if view == "left" else 1
-            line(ctx, [(20 * u, 3), (175 * u, 3)], self.c(), lw=1.6)
-            line(ctx, [(20 * u, 5.5), (175 * u, 5.5)], self.c(), lw=0.5)
+            fill(ctx, tones[1])
+            lv = splinter_camo((-300, -10, 300, 60), n=30, seed=13, angle=10)
+            for g, t in zip(lv[2:], tones[2:]):
+                fill_geom(ctx, g, t)
