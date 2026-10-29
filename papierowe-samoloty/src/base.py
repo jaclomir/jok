@@ -229,6 +229,8 @@ class Model:
         return None
 
     def watermark(self, ctx):
+        # bez napisów na arkuszu (decyzja: żadnych napisów, także ukrytych)
+        return
         if not self._wm:
             return
         x, y, ang, size = self._wm

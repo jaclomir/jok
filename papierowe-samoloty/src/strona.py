@@ -48,8 +48,6 @@ def strona():
          ["Weź zwykłą kartkę A4 i pobierz szablon z sekcji „Bez drukarki”. Każdy krok ma schemat z wymiarami: niebieska liczba to odległość "
           "w centymetrach od najbliższego rogu, w której zaczyna się zgięcie. Większość zgięć to „róg do środka” albo „krawędź do krawędzi”, "
           "więc mierzysz tylko kilka miejsc."]),
-        ("Gdzie jest napis domowydrukarz.pl?",
-         ["Na arkuszu, w miejscu, które po złożeniu chowa się w środku modelu. Na gotowym samolocie go nie widać."]),
         ("Czy coś zostaje wysłane?",
          ["Nie. PDF powstaje w Twojej przeglądarce, nic nie idzie na serwer. Wczytaj stronę, odłącz internet i dalej działa.",
           "Wybrany model i kolor są w adresie strony, więc wyślesz komuś link do dokładnie tego samolotu."]),

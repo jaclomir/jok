@@ -80,8 +80,6 @@ Pliki zbiorcze:
 - Napisy, oczy, znaki i logo stawiane są automatycznie tylko tam, gdzie zmieszczą się
   w całości na jednym ciągłym kawałku kartki: co najmniej 2,5 mm od zgięć i 5 mm od brzegu
   kartki (margines drukarki). Generator ostrzega o każdym detalu, który mógłby zostać ucięty.
-- Napis `domowydrukarz.pl` stoi w miejscu, które po złożeniu jest całkowicie schowane
-  w środku modelu (z zapasem 7 mm na niedokładne składanie).
 
 ## Jak to działa
 
