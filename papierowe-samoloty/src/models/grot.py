@@ -56,12 +56,16 @@ class Grot(Model):
                 p = self.fit("top", 17, 17, (55, 40 * s))
                 if p:
                     checker(ctx, p[0], p[1], 14)
-                self.label(ctx, "top", "07", (150, 20 * s), 9, rgb=white)
             # kabina, pas przeciwodblaskowy, stożek nosa
             poly(ctx, [(L - 110, -3), (L - 38, -3.5), (L - 38, 3.5), (L - 110, 3)], self.dots(0.6, k=0.35))
             ellipse(ctx, L - 75, 0, 22, 3.4, Dots(hx("#5aa0d8"), 0.5), stroke=hx("#ffffff"), lw=0.4)
             ellipse(ctx, L - 69, 1.0, 8, 1.0, white)
             poly(ctx, [(L - 34, -4.5), (L + 4, 0), (L - 34, 4.5)], self.dots(0.55, k=0.3))
+            poly(ctx, [(L - 12, -1.6), (L + 4, 0), (L - 12, 1.6)], red)
+            for s in (1, -1):
+                # czerwone końcówki skrzydeł
+                for k in range(2):
+                    line(ctx, [(0, (56 - k * 3.2) * s), (30, (53.6 - k * 3.2) * s)], red, lw=1.0)
         elif view == "bottom":
             fill(ctx, Dots(hx("#8d97a2"), 0.08))
             for s in (1, -1):
@@ -78,4 +82,3 @@ class Grot(Model):
             line(ctx, [(140 * u, 3.5), (290 * u, 1.2)], white, lw=1.6)
             line(ctx, [(140 * u, 2.2), (290 * u, 0.5)], red, lw=0.6)
             poly(ctx, [(150 * u, 4.5), (172 * u, 4.5), (172 * u, 8), (150 * u, 9)], self.dots(0.5, k=0.3))
-            self.label(ctx, view, "07", (215 * u, 9), 6, rgb=white)

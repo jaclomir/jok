@@ -24,7 +24,7 @@ class Jerzyk(Model):
 
     # ------------------------------------------------------------------
     tagline = "Szybowiec z ciężkim nosem – do latania na dworze"
-    style = "realistyczny: liniowiec fikcyjnych linii JERZYK"
+    style = "realistyczny: liniowiec z łukiem barw na skrzydłach"
     fly = "Na dworze: rzuć mocno do góry, zakręci i zejdzie długim, spokojnym ślizgiem. W domu – lekko, poziomo."
     difficulty = 2
     inks = {"main": "#1f3566"}
@@ -37,39 +37,39 @@ class Jerzyk(Model):
         feat(ctx, "logo", x - 16 * abs(s), y - 7 * abs(s), x + 1 * abs(s), y + 7 * abs(s))
 
     def art(self, ctx, view, piece):
-        from paint import hx, fill, poly, rect, line, circle
+        from paint import hx, fill, poly, rect, line, circle, band, bez_pts
         L = self.H - 90
         red, grey = hx("#e2434f"), hx("#9aa4b0")
         if piece.zone == "winglet":
-            fill(ctx, hx("#ffffff"))
+            fill(ctx, self.dots(0.12))
             u = -1 if view == "left" else 1
-            rect(ctx, -400, 37, 400, 38.6, red)
-            p = self.fit(view, 22, 16, (30 * u, 52))
+            rect(ctx, -400, 34, 400, 40, self.dots(0.6))
+            rect(ctx, -400, 40, 400, 41.2, red)
+            p = self.fit(view, 22, 16, (30 * u, 54))
             if p:
-                self.swift(ctx, p[0] + 8 * u, p[1], 1.1 * u, self.dots(0.3), stroke=self.c())
+                self.swift(ctx, p[0] + 8 * u, p[1], 1.1 * u, hx("#ffffff"), stroke=self.c())
             return
-        if view == "top":
-            fill(ctx, self.dots(0.06))
+        if view in ("top", "bottom"):
+            fill(ctx, self.dots(0.06 if view == "top" else 0.03))
             for s in (1, -1):
-                # krawędź natarcia z przednimi klapami, lotki i klapy na tylnej krawędzi
-                line(ctx, [(L - 4, 1 * s), (L - 22, 92 * s)], hx("#ffffff"), lw=2.5)
-                line(ctx, [(L - 10, 12 * s), (L - 26, 86 * s)], grey, lw=0.25)
-                line(ctx, [(10, 6 * s), (10, 84 * s)], grey, lw=0.3)
-                for y in (30, 52, 70):
-                    line(ctx, [(0, y * s), (10, y * s)], grey, lw=0.3)
-                rect(ctx, -10, min(87 * s, 90 * s), 200, max(87 * s, 90 * s), self.c())
-            self.label(ctx, "top", "JERZYK", (50, 50), 8, rgb=self.c())
-            self.label(ctx, "top", "SP-JRZ", (50, -50), 7, rgb=self.c(), bold=False)
-        elif view == "bottom":
-            fill(ctx, self.dots(0.03))
-            self.label(ctx, "bottom", "SP-JRZ", (75, 40), 9, rgb=self.c(), bold=False)
-            self.label(ctx, "bottom", "JERZYK", (75, -40), 9, rgb=self.c(), bold=False)
-            for s in (1, -1):
-                rect(ctx, -10, min(87 * s, 90 * s), 200, max(87 * s, 90 * s), self.c())
+                # łuk barw linii przechodzący w końcówkę skrzydła
+                a = bez_pts((-10, 58 * s), (40, 60 * s), (80, 72 * s), (120, 96 * s), 40)
+                poly(ctx, band(a, 10, 16), self.dots(0.55 if view == "top" else 0.4))
+                b = bez_pts((-10, 50 * s), (40, 52 * s), (85, 66 * s), (125, 92 * s), 40)
+                poly(ctx, band(b, 1.6), red)
+                rect(ctx, -10, min(84 * s, 100 * s), 200, max(84 * s, 100 * s), self.dots(0.55 if view == "top" else 0.4))
+                if view == "top":
+                    line(ctx, [(L - 4, 1 * s), (L - 22, 92 * s)], hx("#ffffff"), lw=2.5)
+                    line(ctx, [(L - 10, 12 * s), (L - 26, 86 * s)], grey, lw=0.25)
+                    line(ctx, [(10, 6 * s), (10, 46 * s)], grey, lw=0.3)
+                    for y in (6, 26, 46):
+                        line(ctx, [(0, y * s), (10, y * s)], grey, lw=0.3)
+                    for y in (16, 34):
+                        line(ctx, [(10, y * s), (22, y * s)], grey, lw=0.6)
         else:
             u = -1 if view == "left" else 1
             fill(ctx, hx("#ffffff"))
-            rect(ctx, -400, -2, 400, 5, self.dots(0.25))
+            rect(ctx, -400, -2, 400, 5, self.dots(0.35))
             rect(ctx, -400, 5, 400, 6.4, self.c())
             rect(ctx, -400, 6.4, 400, 7.4, red)
             for k in range(14):
@@ -79,4 +79,3 @@ class Jerzyk(Model):
                     continue
                 circle(ctx, x, 13.5, 1.0, self.c(0.1))
             poly(ctx, [((L - 1) * u, 12.5), ((L - 8) * u, 12.5), ((L - 10) * u, 15.5), ((L - 2) * u, 15.5)], self.c(0.1))
-            self.label(ctx, view, "JERZYK", (50 * u, 22), 5.5, rgb=self.c())

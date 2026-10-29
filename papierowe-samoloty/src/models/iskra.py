@@ -66,9 +66,7 @@ class Iskra(Model):
             if view == "top":
                 ellipse(ctx, L - 46, 0, 16, 3.2, Dots(hx("#2f6aa8"), 0.45), stroke=hx("#3b4552"), lw=0.3)
                 ellipse(ctx, L - 42, 0.8, 6, 0.8, white)
-                self.label(ctx, "top", "1", (40, 30), 9, rgb=self.c(0.3))
         else:
             u = -1 if view == "left" else 1
             line(ctx, [(20 * u, 3), (175 * u, 3)], self.c(), lw=1.6)
             line(ctx, [(20 * u, 5.5), (175 * u, 5.5)], self.c(), lw=0.5)
-            self.label(ctx, view, "ISKRA", (110 * u, 12), 6, rgb=self.c(0.3))

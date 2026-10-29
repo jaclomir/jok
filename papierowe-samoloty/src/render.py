@@ -286,6 +286,60 @@ def camera(az, el):
     return R, U, D
 
 
+def depth_order(items, D, key_piece=lambda it: it[3]):
+    """Kolejność rysowania (od najdalszego) dla elementów leżących na kilku płaskich panelach.
+
+    Sortowanie po środku ciężkości myli się przy długich panelach (kadłub rysował się na
+    skrzydle), więc najpierw układamy całe panele testem płaszczyzn, a w obrębie panelu
+    kolejność nie ma znaczenia (widoczne kawałki jednego panelu się nie nakładają)."""
+    groups = {}
+    for it in items:
+        p = key_piece(it)
+        k = (p.zone,) if p.zone == "kadlub" else (p.zone, p.half)
+        groups.setdefault(k, []).append(it)
+    info = {}
+    for k, its in groups.items():
+        pts = []
+        for it in its:
+            p = key_piece(it)
+            for x, y in p.paper.exterior.coords:
+                pts.append((p.A @ np.array([x, y, 0, 1]))[:3])
+        pts = np.array(pts)
+        p0 = key_piece(its[0])
+        n = p0.normal / np.linalg.norm(p0.normal)
+        c = pts.mean(axis=0)
+        info[k] = (n, c, pts)
+    cam = -np.asarray(D)
+
+    def front(a, b, eps=0.6):
+        """Czy panel a zasłania panel b (a jest bliżej oka)."""
+        na, ca, pa = info[a]
+        nb, cb, pb = info[b]
+        sa = np.sign(np.dot(na, cam)) or 1
+        sb = np.sign(np.dot(nb, cam)) or 1
+        # b w całości po drugiej stronie płaszczyzny a niż oko
+        if np.all((pb - ca) @ na * sa <= eps):
+            return True
+        # a w całości po stronie oka względem płaszczyzny b
+        if np.all((pa - cb) @ nb * sb >= -eps):
+            return True
+        return False
+
+    keys = list(groups)
+    depth = {k: float(np.dot(info[k][1], D)) for k in keys}
+    order, left = [], set(keys)
+    while left:
+        # panel, którego żaden z pozostałych nie ma za sobą... czyli najdalszy: nie zasłania żadnego z pozostałych
+        cand = [k for k in left if not any(front(k, j) and not front(j, k) for j in left if j != k)]
+        k = max(cand or left, key=lambda q: depth[q])
+        order.append(k)
+        left.remove(k)
+    out = []
+    for k in order:
+        out += groups[k]
+    return out
+
+
 def render_3d(pieces, tex, model, az=-130, el=25, size=(900, 600), ss=2, bg=(255, 255, 255), margin=30,
               shadow=True):
     R, U, D = camera(az, el)
@@ -324,7 +378,7 @@ def render_3d(pieces, tex, model, az=-130, el=25, size=(900, 600), ss=2, bg=(255
             dsh.polygon(pts, fill=70)
         sh = sh.filter(ImageFilter.GaussianBlur(10 * ss))
         canvas.paste((185, 190, 200), (0, 0), sh)
-    for depth, M, scr, p, shade in sorted(items, key=lambda t: -t[0]):
+    for depth, M, scr, p, shade in depth_order(items, D):
         MM_ = F @ M
         g = apply(F, scr)
         if p.printed:

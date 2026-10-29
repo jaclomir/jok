@@ -105,11 +105,8 @@ class Bryza(Model):
             # pas na grzbiecie, okna kabiny, nos
             rect(ctx, -10, -3, L - 14, 3, self.dots(0.6))
             poly(ctx, [(L - 13, -6), (L - 4, -5), (L - 4, 5), (L - 13, 6)], Dots(hx("#2f6aa8"), 0.5), stroke=dark, lw=0.3)
-            self.label(ctx, "top", "SP-BRZ", (55, 30), 7, rgb=dark, bold=False)
-            self.label(ctx, "top", "RATUNEK", (55, -30), 6, rgb=self.c(0.25))
         elif view == "bottom":
             fill(ctx, Dots(grey, 0.06))
-            self.label(ctx, "bottom", "SP-BRZ", (L - 25, 18), 6, rgb=dark)
             rect(ctx, L - 50, -40, L - 46, 40, self.c())
         else:
             u = -1 if view == "left" else 1

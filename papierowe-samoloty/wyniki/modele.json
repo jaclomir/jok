@@ -9,7 +9,7 @@
     "widoczny_nadruk_proc": 65,
     "kroki": 8,
     "tusz_srednio_proc": 25,
-    "tusz_max_30mm_proc": 58
+    "tusz_max_30mm_proc": 69
   },
   {
     "slug": "albatros",
@@ -27,13 +27,13 @@
     "slug": "jerzyk",
     "nazwa": "Jerzyk",
     "opis": "Szybowiec z ciężkim nosem – do latania na dworze",
-    "styl": "realistyczny: liniowiec fikcyjnych linii JERZYK",
+    "styl": "realistyczny: liniowiec z łukiem barw na skrzydłach",
     "trudnosc": 2,
     "orientacja": "pozioma",
     "widoczny_nadruk_proc": 75,
     "kroki": 10,
-    "tusz_srednio_proc": 9,
-    "tusz_max_30mm_proc": 35
+    "tusz_srednio_proc": 14,
+    "tusz_max_30mm_proc": 59
   },
   {
     "slug": "sokol",

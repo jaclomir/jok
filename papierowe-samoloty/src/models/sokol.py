@@ -78,7 +78,6 @@ class Sokol(Model):
                 for k in range(2):
                     line(ctx, [(L - 84 + k * 8, 50 * s), (L - 66 + k * 8, 30 * s)], self.c(), lw=1.6)
                 line(ctx, [(L - 30, 4 * s), (2, 70 * s)], white, lw=0.7)
-                self.label(ctx, "top", "TIGER", (128, 30 * s), 4.5, rgb=hx("#1d1a18"))
             # grzbiet: czarny pas z kabiną, nos w kolorze
             poly(ctx, [(L - 120, -3), (L - 22, -3.5), (L - 22, 3.5), (L - 120, 3)], black)
             ellipse(ctx, L - 50, 0, 16, 3, Dots(hx("#5aa0d8"), 0.5), stroke=white, lw=0.4)
@@ -96,4 +95,3 @@ class Sokol(Model):
             for k in range(6):
                 x = (70 + k * 17) * u
                 poly(ctx, [(x, -2), (x + 4 * u, -2), (x + 10 * u, 14), (x + 7 * u, 14)], black)
-            self.label(ctx, view, "21", (160 * u, 8), 5, rgb=hx("#1d1a18"))

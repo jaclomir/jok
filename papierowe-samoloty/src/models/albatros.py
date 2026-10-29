@@ -60,15 +60,13 @@ class Albatros(Model):
                         line(ctx, [(0, y * s), (9, y * s)], grey, lw=0.3)
                     line(ctx, [(9, 22 * s), (9, 44 * s)], grey, lw=0.3)
             if view == "top":
-                self.label(ctx, "top", "SP-3415", (60, 30), 9, rgb=navy, bold=False)
-                self.label(ctx, "top", "SP-3415", (60, -30), 9, rgb=navy, bold=False)
-                ellipse(ctx, L - 22, 0, 16, 3.2, Dots(hx("#2f6aa8"), 0.45), stroke=navy, lw=0.3)
+                ellipse(ctx, L - 22, 0, 16, 3.2, Dots(hx("#2f6aa8"), 0.45), stroke=self.c(0.2), lw=0.6)
+                for s in (1, -1):
+                    # cienka linia koloru wzdłuż całej krawędzi natarcia
+                    line(ctx, [(L - 8, 3 * s), (L - 96, 86 * s)], self.c(), lw=1.0)
                 ellipse(ctx, L - 18, 0.8, 6, 0.8, hx("#ffffff"))
-            else:
-                self.label(ctx, "bottom", "SP-3415", (70, 30), 9, rgb=navy, bold=False)
         else:
             u = -1 if view == "left" else 1
             line(ctx, [(10 * u, 9), ((L - 8) * u, 9)], self.c(), lw=1.2)
             line(ctx, [(10 * u, 11.5), ((L - 8) * u, 11.5)], self.c(0.35), lw=0.5)
             poly(ctx, [((L + 4) * u, -2), ((L - 14) * u, -2), ((L - 14) * u, 40), ((L + 4) * u, 40)], self.dots(0.4))
-            self.label(ctx, view, "ALBATROS", (90 * u, 20), 4.5, rgb=navy)

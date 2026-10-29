@@ -15,7 +15,7 @@ from shapely.ops import unary_union
 
 import paint
 from fold import apply, halfplane, polys, reflection
-from render import MM, camera, fit, paint_sheet
+from render import MM, camera, depth_order, fit, paint_sheet
 
 R1 = lambda v: round(float(v), 1)  # noqa: E731
 R2 = lambda v: round(float(v), 2)  # noqa: E731
@@ -193,7 +193,7 @@ def scene_3d(M, az, el, size, margin=24):
     allg = unary_union([i[2] for i in items])
     F = fit(allg.bounds, size, margin)
     out = []
-    for depth, Mx, scr, p, shade in sorted(items, key=lambda t: -t[0]):
+    for depth, Mx, scr, p, shade in depth_order(items, D):
         for g in polys(apply(F, scr)):
             out.append({"p": _poly(g), "m": _aff(F @ Mx), "pr": bool(p.printed), "sh": R2(shade)})
     return {"w": size[0], "h": size[1], "items": out}
