@@ -20,12 +20,41 @@
   const kolory = m => Object.assign({}, m.kolory, st.kolor ? { main: st.kolor } : {});
   const nazwaKoloru = () => (KOLORY.find(k => k[1] === st.kolor) || ['własny'])[0];
   const dpr = () => Math.min(2, window.devicePixelRatio || 1);
+  const MAX_CACHE = 8; // duże obrazy arkusza – trzymamy tylko kilka ostatnich, telefony mają mało pamięci
 
   // arkusz jako obraz – gładki odcień zamiast kropek, bo na ekranie kropki dają mory
   function arkusz(m, ppmm, gladko) {
     const k = m.slug + '|' + (st.kolor || '') + '|' + ppmm + '|' + gladko + '|' + st.linie;
-    if (!cache.has(k)) cache.set(k, S.arkuszCanvas(m, kolory(m), ppmm, { gladko, bezMalowania: st.linie }));
-    return cache.get(k);
+    return zCache(k, () => S.arkuszCanvas(m, kolory(m), ppmm, { gladko, bezMalowania: st.linie }));
+  }
+
+  function zCache(k, zrob) {
+    if (cache.has(k)) { const v = cache.get(k); cache.delete(k); cache.set(k, v); return v; }
+    const v = zrob();
+    cache.set(k, v);
+    while (cache.size > MAX_CACHE) {
+      const stary = cache.keys().next().value;
+      const c = cache.get(stary);
+      if (c && c.width) { c.width = 0; c.height = 0; } // zwalnia pamięć od razu (Safari)
+      cache.delete(stary);
+    }
+    return v;
+  }
+
+  // praca w tle: kolejka małych zadań, żeby strona nie stawała; nowa zmiana unieważnia stare zadania
+  let pokolenie = 0;
+  const kolejka = [];
+  let kolejkaTimer = null;
+  function wTle(fn) {
+    const g = pokolenie;
+    kolejka.push(() => { if (g === pokolenie) fn(); });
+    if (!kolejkaTimer) kolejkaTimer = setTimeout(krok, 0);
+  }
+  function krok() {
+    kolejkaTimer = null;
+    const t0 = performance.now();
+    while (kolejka.length && performance.now() - t0 < 30) kolejka.shift()();
+    if (kolejka.length) kolejkaTimer = setTimeout(krok, 0);
   }
 
   /* ---------- adres strony ---------- */
@@ -73,9 +102,11 @@
     for (const b of $('modele').querySelectorAll('button')) {
       const m = DANE.find(x => x.slug === b.dataset.slug);
       b.setAttribute('aria-pressed', String(m.slug === st.model));
-      const sc = m.widoki.gora;
-      const c = b.querySelector('canvas');
-      S.rysujScene(c, sc, m, arkusz(m, 2, true), 2, { dpr: dpr() * 0.34 });
+      wTle(() => {
+        const a = S.arkuszCanvas(m, kolory(m), 1.5, { gladko: true, bezMalowania: st.linie });
+        S.rysujScene(b.querySelector('canvas'), m.widoki.gora, m, a, 1.5, { dpr: dpr() * 0.34 });
+        a.width = 0; a.height = 0;
+      });
     }
   }
 
@@ -123,21 +154,20 @@
       x.drawImage(a, 0, 0);
       $('podpisPodgladu').textContent = 'Arkusz od strony nadruku. Białe pola zostają w środku modelu.';
     } else {
-      S.rysujScene(c, m.widoki[st.widok], m, arkusz(m, 4, true), 4, { dpr: dpr(), tlo: '#ffffff' });
+      S.rysujScene(c, m.widoki[st.widok], m, arkusz(m, 3, true), 3, { dpr: dpr(), tlo: '#ffffff' });
       $('podpisPodgladu').textContent = st.widok === 'gora' ? 'Złożony model, widok z góry.'
         : 'Złożony model od spodu. Białe miejsca to strona kartki bez nadruku.';
     }
     // lupa: fragment arkusza z prawdziwymi kropkami, mniej więcej w skali 1:1
     const l = $('lupa');
     l.parentElement.hidden = st.linie;
+    if (st.linie) return;
     const ppmm = 3.78 * dpr();
-    const k = 'lupa|' + m.slug + '|' + (st.kolor || '') + '|' + st.linie;
-    if (!cache.has(k)) cache.set(k, S.arkuszCanvas(m, kolory(m), ppmm, { gladko: false, bezMalowania: st.linie }));
-    const big = cache.get(k);
     l.width = Math.round(220 * dpr()); l.height = Math.round(120 * dpr());
     const fx = m.lupa ? m.lupa[0] : 0.5, fy = m.lupa ? m.lupa[1] : 0.5;
-    l.getContext('2d').drawImage(big, Math.max(0, big.width * fx - l.width / 2), Math.max(0, big.height * fy - l.height / 2),
-      l.width, l.height, 0, 0, l.width, l.height);
+    const MM = S.MM, wpt = l.width / ppmm * MM, hpt = l.height / ppmm * MM;
+    const x0 = Math.max(0, m.W * MM * fx - wpt / 2), y0 = Math.max(0, m.H * MM * fy - hpt / 2);
+    S.rysujArkusz(l.getContext('2d'), m, kolory(m), ppmm / MM, { gladko: false, okno: [x0, y0, x0 + wpt, y0 + hpt] });
   }
 
   function opis() {
@@ -162,7 +192,10 @@
       .replace(/ do linii STOP \((\d+) zgięć\)/, ' – razem $1 zgięć')
       .trim();
   }
-  function kartyKrokow(m, bez) {
+  function rysujKroki() {
+    for (const li of $('kroki').children) if (li._rysuj) { const f = li._rysuj; li._rysuj = null; wTle(f); }
+  }
+  function kartyKrokow(m, bez, odRazu) {
     const out = [];
     const a = arkusz(m, 3, true);
     const pusta = bez ? (() => { const c = document.createElement('canvas'); c.width = a.width; c.height = a.height;
@@ -188,18 +221,20 @@
         x.fillStyle = '#d7263d';
         x.beginPath(); x.moveTo(c.width / 2, 2); x.lineTo(c.width / 2 - 10 * dpr(), 16 * dpr()); x.lineTo(c.width / 2 + 10 * dpr(), 16 * dpr()); x.fill();
       }
-    }));
+    }, odRazu));
     for (const k of m.kroki) {
       out.push(kartaKroku(String(k.n), bez ? bezWydruku(k.t, m) : k.t,
-        c => S.rysujScene(c, k.s, m, pusta, 3, { dpr: dpr(), tlo: '#ffffff', miary: bez })));
+        c => S.rysujScene(c, k.s, m, pusta, 3, { dpr: dpr(), tlo: '#ffffff', miary: bez }), odRazu));
     }
     return out;
   }
+  let krokiWidoczne = false;
   function kroki() {
     const m = model();
     const box = $('kroki');
     box.innerHTML = '';
     for (const li of kartyKrokow(m, st.bezDrukarki)) box.appendChild(li);
+    if (krokiWidoczne) rysujKroki();
     const lg = $('legendaKrokow');
     if (!lg.dataset.druk) lg.dataset.druk = lg.innerHTML;
     lg.innerHTML = st.bezDrukarki
@@ -208,11 +243,12 @@
       : lg.dataset.druk;
     for (const b of document.querySelectorAll('#trybKrokow button')) b.setAttribute('aria-pressed', String((b.dataset.t === 'bez') === st.bezDrukarki));
   }
-  function kartaKroku(nr, tekst, rysuj) {
+  function kartaKroku(nr, tekst, rysuj, odRazu) {
     const li = document.createElement('li');
     const c = document.createElement('canvas');
     c.setAttribute('aria-hidden', 'true');
-    rysuj(c);
+    c.width = 300; c.height = 300;
+    if (odRazu) rysuj(c); else li._rysuj = () => rysuj(c);
     const n = document.createElement('span');
     n.className = 'nr mono';
     n.textContent = nr;
@@ -228,7 +264,7 @@
     $('save').disabled = true;
     $('open').removeAttribute('href');
     $('stats').textContent = 'Składam PDF…';
-    pdfTimer = setTimeout(robPdf, 150);
+    pdfTimer = setTimeout(() => wTle(robPdf), 700);
   }
   async function robPdf() {
     const nr = ++pdfNr;
@@ -253,7 +289,7 @@
   // instrukcja jako druga strona: obrazek złożony z kart kroków
   async function dolaczInstrukcje(bytes, m) {
     const doc = await window.PDFLib.PDFDocument.load(bytes);
-    await stronaKrokow(doc, m, kartyKrokow(m, false), m.nazwa + ' – jak złożyć', 'domowydrukarz.pl · papierowe samoloty · ' + m.lot);
+    await stronaKrokow(doc, m, kartyKrokow(m, false, true), m.nazwa + ' – jak złożyć', 'domowydrukarz.pl · papierowe samoloty · ' + m.lot);
     return doc.save();
   }
   async function szablonBezDrukarki() {
@@ -262,7 +298,7 @@
     const doc = await L.PDFDocument.create();
     doc.setTitle(m.nazwa + ' – składanie bez drukarki (domowydrukarz.pl)');
     doc.setAuthor('domowydrukarz.pl');
-    await stronaKrokow(doc, m, kartyKrokow(m, true), m.nazwa + ' – bez drukarki',
+    await stronaKrokow(doc, m, kartyKrokow(m, true, true), m.nazwa + ' – bez drukarki',
       'Zwykła kartka A4 i ta instrukcja. Niebieskie liczby: odległość w cm od najbliższego rogu kartki. domowydrukarz.pl');
     const bytes = await doc.save();
     const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
@@ -312,14 +348,21 @@
   }
 
   /* ---------- całość ---------- */
+  let ramka = null;
   function zmiana() {
-    zapiszAdres();
-    miniatury();
-    zaznaczKolor();
-    opis();
-    podglad();
-    kroki();
-    planujPdf();
+    if (ramka) return;
+    ramka = requestAnimationFrame(() => {
+      ramka = null;
+      pokolenie++;
+      kolejka.length = 0;
+      zapiszAdres();
+      zaznaczKolor();
+      opis();
+      podglad();
+      miniatury();
+      kroki();
+      planujPdf();
+    });
   }
 
   function start() {
@@ -332,6 +375,10 @@
     $('szablon').addEventListener('click', () => szablonBezDrukarki().catch(e => console.error(e)));
     for (const b of document.querySelectorAll('#trybKrokow button')) b.addEventListener('click', () => { st.bezDrukarki = b.dataset.t === 'bez'; zapiszAdres(); kroki(); });
     $('pokazBez').addEventListener('click', () => { st.bezDrukarki = true; zapiszAdres(); kroki(); $('h-kroki').scrollIntoView({ behavior: 'smooth' }); });
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(e => { if (e.some(x => x.isIntersecting)) { krokiWidoczne = true; rysujKroki(); } },
+        { rootMargin: '600px' }).observe($('kroki'));
+    } else krokiWidoczne = true;
     zmiana();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();

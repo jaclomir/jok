@@ -68,8 +68,10 @@
   function rysujArkusz(ctx, model, kolory, skala, opcje) {
     opcje = opcje || {};
     const W = model.W * MM, H = model.H * MM;
+    // okno: [x0, y0, x1, y1] w punktach – rysujemy tylko ten wycinek (lupa), przesunięty do lewego górnego rogu
+    const ok = opcje.okno;
     ctx.save();
-    ctx.setTransform(skala, 0, 0, skala, 0, 0);
+    ctx.setTransform(skala, 0, 0, skala, ok ? -ok[0] * skala : 0, ok ? -ok[1] * skala : 0);
     ctx.fillStyle = opcje.papier || '#ffffff';
     ctx.fillRect(0, 0, W, H);
     const lista = (opcje.bezMalowania ? [] : model.ops).concat(model.linie || []);
@@ -95,7 +97,12 @@
         ctx.setLineDash([]);
         ctx.globalAlpha = 1;
       } else if (t === 'dots') {
-        const spec = op[2], box = op[3];
+        const spec = op[2];
+        let box = op[3];
+        if (ok) {
+          box = [Math.max(box[0], ok[0]), Math.max(box[1], ok[1]), Math.min(box[2], ok[2]), Math.min(box[3], ok[3])];
+          if (box[0] >= box[2] || box[1] >= box[3]) continue;
+        }
         const c = rgbHex(kolor(spec, kolory));
         ctx.save();
         ctx.clip(path2d(op[1], W, H));
