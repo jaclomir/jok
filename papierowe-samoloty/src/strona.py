@@ -30,8 +30,10 @@ def strona():
           "Mniej tuszu to kartka, która się nie wygina. Pełna apla z drukarki atramentowej potrafi pofalować zwykły papier 80 g, "
           "a samolot z pofalowanej kartki lata krzywo."]),
         ("Czy mogę wybrać dowolny kolor?",
-         ["Tak. Wzór zostaje ten sam, a zmienia się kolor główny: kamuflaż Grota, pasy Iskry, końcówki skrzydeł Albatrosa. "
-          "Wybierz jedną z próbek albo własny kolor w kółku na końcu listy. Detale, takie jak oczy czy szachownica, mają stałe kolory."]),
+         ["Tak. Wzór zostaje ten sam, a zmienia się kolor główny. Wybierz jedną z próbek albo własny kolor w kółku na końcu listy. "
+          "Detale, takie jak szachownica czy beżowe plamy, mają stałe kolory.",
+          "Każdy model ma własne malowanie, a do tego sześć lekkich wzorów do wyboru: Mapa, Nawigacja, Kliny, Fale, Gwiazdozbiór i Pasy. "
+          "Pasują do każdego modelu i zużywają bardzo mało tuszu."]),
         ("Czemu część samolotu jest biała?",
          ["Drukujemy jednostronnie, a po złożeniu część kartki pokazuje stronę bez nadruku – zwykle spód kadłuba i kawałek spodu skrzydeł. "
           "Malowanie jest pod to ułożone: wierzch skrzydeł jest zawsze zadrukowany, a biały spód to część wzoru."]),
@@ -82,7 +84,9 @@ def strona():
 .skladanie canvas{grid-column:1/-1;width:100%;height:auto;aspect-ratio:1;object-fit:contain;background:#fff;border-radius:6px}
 .skladanie .nr{color:var(--sygnal);font-weight:700;font-size:15px}
 .skladanie p{margin:0;font-size:15px;line-height:1.45}
-.kolory.wylaczone{opacity:.35}
+.kolory.wylaczone,.przel.wylaczone{opacity:.35}
+#wzory{border:0;border-radius:0;gap:8px;overflow:visible}
+#wzory button{padding:6px 14px;border:1.5px solid var(--obrys);border-radius:999px}
 .zaznacz{display:flex;gap:10px;align-items:flex-start;margin-top:16px;font-size:15px;max-width:62ch}
 .zaznacz input{width:20px;height:20px;margin-top:2px;accent-color:var(--sygnal)}
 @media (max-width:560px){#modele{grid-template-columns:repeat(2,minmax(0,1fr))}.lupa{flex-direction:column;align-items:flex-start}}
@@ -129,7 +133,7 @@ def strona():
 <main>
 <section aria-labelledby="h-model">
  <div class="wrap">
-  <div class="nag"><span class="nr mono">1</span><h2 id="h-model">Model i kolor</h2></div>
+  <div class="nag"><span class="nr mono">1</span><h2 id="h-model">Model, wzór i kolor</h2></div>
   <div class="typy" id="modele" role="group" aria-label="Model samolotu"></div>
 
   <div class="rozklad" style="margin-top:28px">
@@ -140,6 +144,7 @@ def strona():
      <p class="szary"><span id="mStyl"></span> · <span id="mTrud"></span></p>
     </div>
     <div class="opts waskie" style="margin-top:20px">
+     <div class="fld"><span class="et">Wzór malowania</span><div class="przel" id="wzory" role="group" aria-label="Wzór malowania"></div><span class="pom">Każdy wzór pasuje do każdego modelu i trafia na skrzydła po złożeniu.</span></div>
      <div class="fld"><span class="et">Kolor główny</span><div class="kolory" id="kolory" role="group" aria-label="Kolor główny"></div><span class="pom" id="kolorNazwa"></span></div>
      <label class="zaznacz" style="margin-top:4px"><input type="checkbox" id="bezMal"> <span>Bez malowania – drukuj same linie zgięć. Najmniej tuszu, a samolot pomalujesz sam kredkami.</span></label>
     </div>

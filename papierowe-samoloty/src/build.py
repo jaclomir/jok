@@ -263,7 +263,14 @@ def build(slug, cls):
     os.makedirs(dd, exist_ok=True)
     js = os.path.join(dd, f"{slug}.json")
     with open(js, "w") as f:
-        json.dump(export.model_data(M), f, ensure_ascii=False, separators=(",", ":"))
+        dane = export.model_data(M)
+        # wspólne wzory malowań: inne są tylko operacje malowania, reszta (linie, widoki, kroki) ta sama
+        from wzory import WZORY, z_wzorem
+        dane["wzory"] = {}
+        for wid, nazwa, kolor, _ in WZORY:
+            Mw = z_wzorem(type(M), wid)()
+            dane["wzory"][wid] = {"nazwa": nazwa, "kolor": kolor, "ops": export.sheet_ops(Mw, art=True)}
+        json.dump(dane, f, ensure_ascii=False, separators=(",", ":"))
     arkusz = os.path.join(od, f"{slug}-tylko-wydruk.pdf")
     node = os.path.join(os.path.dirname(__file__), "web", "pdf-node.js")
     subprocess.run(["node", node, js, arkusz], check=True)

@@ -12,6 +12,7 @@ from shapely.ops import unary_union
 
 from fold import apply, polys
 from model3d import view_affine
+import paint
 
 MM = 72 / 25.4  # pt na mm
 PAPER = (250, 249, 245)  # kolor nienadrukowanej kartki w podglądach
@@ -65,7 +66,11 @@ def paint_sheet(ctx, model, pieces, bleed=3.0, lines=True, numbers=True, art=Tru
             ctx.clip()
             V = view_affine(p)
             ctx.transform(cairo_matrix(np.linalg.inv(V)))
+            # obszar fragmentu w układzie widoku – fill_geom/lines_geom przycinają do niego geometrię,
+            # żeby dane arkusza nie powtarzały całego wzoru przy każdym fragmencie
+            paint.PIECE_CLIP[0] = apply(V, g.buffer(1.0))
             model.art(ctx, p.view, p)
+            paint.PIECE_CLIP[0] = None
             ctx.restore()
     if model.watermark:
         model.watermark(ctx)

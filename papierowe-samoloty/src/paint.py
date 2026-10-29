@@ -114,6 +114,11 @@ def setc(ctx, col):
 
 
 def poly(ctx, pts, col, stroke=None, lw=0.4):
+    if PIECE_CLIP[0] is not None and not stroke and len(pts) > 6:
+        from shapely.geometry import Polygon
+        from shapely.validation import make_valid
+        fill_geom(ctx, make_valid(Polygon(pts)), col)
+        return
     ctx.new_path()
     ctx.move_to(*pts[0])
     for p in pts[1:]:
@@ -165,6 +170,10 @@ def ellipse(ctx, x, y, rx, ry, col, rot=0.0, stroke=None, lw=0.4):
 
 
 def line(ctx, pts, col, lw=0.4, dash=None, cap=cairo.LINE_CAP_ROUND):
+    if PIECE_CLIP[0] is not None and len(pts) > 6 and cap == cairo.LINE_CAP_ROUND:
+        from shapely.geometry import LineString
+        lines_geom(ctx, LineString(pts), col, lw, dash)
+        return
     ctx.new_path()
     ctx.move_to(*pts[0])
     for p in pts[1:]:
@@ -333,8 +342,60 @@ def digital_camo(bbox, cell=3.0, seed=1, fracs=(0.42, 0.22, 0.14, 0.08), scale=7
     return out
 
 
+PIECE_CLIP = [None]
+
+
+def _clip(g):
+    c = PIECE_CLIP[0]
+    if c is None or g is None:
+        return g
+    try:
+        return g.intersection(c)
+    except Exception:
+        from shapely.validation import make_valid
+        return make_valid(g).intersection(c)
+
+
+def lines_geom(ctx, g, col, lw=0.4, dash=None):
+    """Rysuje linie geometrii shapely (linie i brzegi wielokątów) jedną ścieżką."""
+    if g is None or g.is_empty:
+        return
+    if hasattr(g, "geom_type") and "Polygon" in g.geom_type:
+        g = g.boundary
+    g = _clip(g)
+    if g is None or g.is_empty:
+        return
+    ctx.new_path()
+    n = 0
+    stack = [g]
+    while stack:
+        x = stack.pop()
+        if hasattr(x, "geoms"):
+            stack.extend(x.geoms)
+        elif hasattr(x, "coords"):
+            pts = list(x.coords)
+            if len(pts) < 2:
+                continue
+            ctx.move_to(*pts[0])
+            for q in pts[1:]:
+                ctx.line_to(*q)
+            n += 1
+    if not n:
+        return
+    setc(ctx, col)
+    ctx.set_line_width(lw)
+    ctx.set_line_cap(cairo.LINE_CAP_ROUND)
+    ctx.set_line_join(cairo.LINE_JOIN_ROUND)
+    ctx.set_dash(dash or [])
+    ctx.stroke()
+    ctx.set_dash([])
+
+
 def fill_geom(ctx, g, col):
     """Wypełnia geometrię shapely (wielokąty z dziurami)."""
+    if g is None or g.is_empty:
+        return
+    g = _clip(g)
     if g is None or g.is_empty:
         return
     from shapely.geometry.polygon import orient

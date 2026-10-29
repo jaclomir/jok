@@ -12,11 +12,18 @@
   ];
   const TRUDNOSC = ['', 'łatwy', 'średni', 'trudniejszy'];
 
-  const st = { model: DANE[0].slug, kolor: null, widok: 'gora', instr: false, linie: false, bezDrukarki: false };
+  const st = { model: DANE[0].slug, wzor: null, kolor: null, widok: 'gora', instr: false, linie: false, bezDrukarki: false };
   const cache = new Map();
   let pdfUrl = null, pdfTimer = null, pdfNr = 0;
 
-  const model = () => DANE.find(m => m.slug === st.model);
+  // wzór malowania wspólny dla wszystkich modeli: podmienia tylko operacje malowania i kolor naturalny
+  const WZORY = Object.entries(DANE[0].wzory || {}).map(([id, w]) => [id, w.nazwa]);
+  function zWzorem(m) {
+    const w = st.wzor && m.wzory && m.wzory[st.wzor];
+    if (!w) return m;
+    return Object.assign({}, m, { ops: w.ops, kolory: Object.assign({}, m.kolory, { main: w.kolor }), styl: 'wzór „' + w.nazwa + '”' });
+  }
+  const model = () => zWzorem(DANE.find(m => m.slug === st.model));
   const kolory = m => Object.assign({}, m.kolory, st.kolor ? { main: st.kolor } : {});
   const nazwaKoloru = () => (KOLORY.find(k => k[1] === st.kolor) || ['własny'])[0];
   const dpr = () => Math.min(2, window.devicePixelRatio || 1);
@@ -24,7 +31,7 @@
 
   // arkusz jako obraz – gładki odcień zamiast kropek, bo na ekranie kropki dają mory
   function arkusz(m, ppmm, gladko) {
-    const k = m.slug + '|' + (st.kolor || '') + '|' + ppmm + '|' + gladko + '|' + st.linie;
+    const k = m.slug + '|' + (st.wzor || '') + '|' + (st.kolor || '') + '|' + ppmm + '|' + gladko + '|' + st.linie;
     return zCache(k, () => S.arkuszCanvas(m, kolory(m), ppmm, { gladko, bezMalowania: st.linie }));
   }
 
@@ -61,6 +68,7 @@
   function czytajAdres() {
     const q = new URLSearchParams(location.search);
     if (DANE.some(m => m.slug === q.get('model'))) st.model = q.get('model');
+    if (WZORY.some(w => w[0] === q.get('wzor'))) st.wzor = q.get('wzor');
     const k = q.get('kolor');
     if (k && /^[0-9a-f]{6}$/i.test(k)) st.kolor = '#' + k.toLowerCase();
     st.linie = q.get('malowanie') === '0';
@@ -69,6 +77,7 @@
   function zapiszAdres() {
     const q = new URLSearchParams();
     q.set('model', st.model);
+    if (st.wzor) q.set('wzor', st.wzor);
     if (st.kolor) q.set('kolor', st.kolor.slice(1));
     if (st.linie) q.set('malowanie', '0');
     if (st.bezDrukarki) q.set('drukarka', '0');
@@ -100,13 +109,27 @@
   }
   function miniatury() {
     for (const b of $('modele').querySelectorAll('button')) {
-      const m = DANE.find(x => x.slug === b.dataset.slug);
+      const m = zWzorem(DANE.find(x => x.slug === b.dataset.slug));
       b.setAttribute('aria-pressed', String(m.slug === st.model));
       wTle(() => {
         const a = S.arkuszCanvas(m, kolory(m), 1.5, { gladko: true, bezMalowania: st.linie });
         S.rysujScene(b.querySelector('canvas'), m.widoki.gora, m, a, 1.5, { dpr: dpr() * 0.34 });
         a.width = 0; a.height = 0;
       });
+    }
+  }
+
+  /* ---------- wzory ---------- */
+  function rysujWzory() {
+    const box = $('wzory');
+    box.innerHTML = '';
+    for (const [id, nazwa] of [[null, 'Własny modelu'], ...WZORY]) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.dataset.w = id || '';
+      b.textContent = nazwa;
+      b.addEventListener('click', () => { st.wzor = id; st.linie = false; zmiana(); });
+      box.appendChild(b);
     }
   }
 
@@ -137,8 +160,10 @@
     $('kolorWlasny').value = st.kolor || model().kolory.main;
     $('bezMal').checked = st.linie;
     $('kolory').classList.toggle('wylaczone', st.linie);
+    $('wzory').classList.toggle('wylaczone', st.linie);
+    for (const b of $('wzory').querySelectorAll('button')) b.setAttribute('aria-pressed', String((b.dataset.w || null) === st.wzor));
     if (st.linie) { $('kolorNazwa').textContent = 'malowanie wyłączone – drukują się same linie zgięć'; return; }
-    $('kolorNazwa').textContent = st.kolor ? nazwaKoloru() + (nazwaKoloru() === 'własny' ? ' ' + st.kolor : '') : 'naturalny dla modelu';
+    $('kolorNazwa').textContent = st.kolor ? nazwaKoloru() + (nazwaKoloru() === 'własny' ? ' ' + st.kolor : '') : st.wzor ? 'naturalny dla wzoru' : 'naturalny dla modelu';
   }
 
   /* ---------- podgląd ---------- */
@@ -275,11 +300,11 @@
       if (nr !== pdfNr) return;
       if (pdfUrl) URL.revokeObjectURL(pdfUrl);
       pdfUrl = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
-      const plik = 'samolot-' + m.slug + (st.linie ? '-same-linie' : st.kolor ? '-' + nazwaKoloru().replace(/[^a-zżźćńółęąś]/gi, '') : '') + '.pdf';
+      const plik = 'samolot-' + m.slug + (st.wzor && !st.linie ? '-' + st.wzor : '') + (st.linie ? '-same-linie' : st.kolor ? '-' + nazwaKoloru().replace(/[^a-zżźćńółęąś]/gi, '') : '') + '.pdf';
       $('save').disabled = false;
       $('save').onclick = () => { const a = document.createElement('a'); a.href = pdfUrl; a.download = plik; document.body.appendChild(a); a.click(); a.remove(); };
       $('open').href = pdfUrl;
-      $('stats').innerHTML = '<b>' + m.nazwa + '</b>, A4 ' + (m.W > m.H ? 'poziomo' : 'pionowo') + ', ' + (st.linie ? 'same linie zgięć' : 'kolor: ' + (st.kolor ? nazwaKoloru() : 'naturalny')) +
+      $('stats').innerHTML = '<b>' + m.nazwa + '</b>, A4 ' + (m.W > m.H ? 'poziomo' : 'pionowo') + ', ' + (st.linie ? 'same linie zgięć' : (st.wzor ? m.styl + ', ' : '') + 'kolor: ' + (st.kolor ? nazwaKoloru() : 'naturalny')) +
         ' · ' + (st.instr ? '2 strony' : '1 strona') + ' · ' + Math.max(1, Math.round(bytes.length / 1024)) + ' KB';
     } catch (e) {
       console.error(e);
@@ -368,6 +393,7 @@
   function start() {
     czytajAdres();
     rysujModele();
+    rysujWzory();
     rysujKolory();
     for (const b of document.querySelectorAll('#widoki button')) b.addEventListener('click', () => { st.widok = b.dataset.w; podglad(); });
     $('instr').addEventListener('change', e => { st.instr = e.target.checked; planujPdf(); });
